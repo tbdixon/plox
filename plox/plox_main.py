@@ -1,12 +1,20 @@
 import sys
+from .scanner import scanner, token
+
+HAD_ERROR = False
+
+
+def plox_error(line_num: int, line: str) -> None:
+    global HAD_ERROR
+    HAD_ERROR = True
+    print(f'Error on line {line_num} {line} ')
 
 
 def run_prompt() -> None:
     while True:
         line = input("> ")
-        if line is None:
-            return
-        else:
+        if line is not None:
+            # Handle ctrl-c etc in a clean manner
             run(line)
 
 
@@ -17,7 +25,11 @@ def run_file(filename: str) -> None:
 
 
 def run(source: str) -> None:
-    print(source)
+    scanner(source)
+    scanner.scan_tokens()
+    for t in scanner.tokens:
+        # if HAD_ERROR...
+        print(t)
 
 
 def main():
