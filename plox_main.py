@@ -1,5 +1,5 @@
 import sys
-from .scanner import scanner, token
+from scanner import scanner, token
 
 HAD_ERROR = False
 
