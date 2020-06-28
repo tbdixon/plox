@@ -1,6 +1,7 @@
 import sys
 from scanner.scanner import Scanner
 
+
 def run_prompt() -> None:
     while True:
         line = input("> ")
