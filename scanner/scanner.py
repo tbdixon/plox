@@ -48,12 +48,6 @@ class Scanner:
     def preview_next(self) -> str:
         return self.source[self.current:self.current + 1]
 
-    def scan_tokens(self) -> None:
-        while not self.is_at_end():
-            self.start = self.current
-            self.scan_token()
-        self.tokens.append(Token(TokenType.EOF, "", None, self.line_num))
-
     def parse_word(self, initial_char: str) -> str:
         word = initial_char
         while not self.is_at_end():
@@ -64,6 +58,7 @@ class Scanner:
         return word
 
     def parse_number(self, initial_char: str) -> str:
+        # TODO: Deal with trailing decimals
         number = initial_char
         decimal_seen = False
         while not self.is_at_end():
@@ -76,10 +71,10 @@ class Scanner:
                     decimal_seen = True
                     number = number + self.advance()
             elif self.preview_next() == "\n" or self.preview_next() == " " or not self.preview_next().isnumeric():
-                return number
+                break
             else:
                 number = number + self.advance()
-        return number
+        return float(number) if decimal_seen else int(number)
 
     def parse_string(self) -> str:
         string = ""
@@ -96,8 +91,13 @@ class Scanner:
     def get_lexeme(self) -> str:
         return self.source[self.start:self.current]
 
+    def scan_tokens(self) -> None:
+        while not self.is_at_end():
+            self.start = self.current
+            self.scan_token()
+        self.tokens.append(Token(TokenType.EOF, "", None, self.line_num))
+
     def scan_token(self) -> None:
-        # Fix the actual lexeme grabbing for start -> end
         current_char = self.advance()
         # Ignore whitespace
         if current_char == " " or current_char == '\r' or current_char == '\t':
@@ -177,10 +177,12 @@ class Scanner:
         elif current_char == '"':
             string = self.parse_string()
             self.tokens.append(Token(TokenType.STRING, self.get_lexeme(), string, self.line_num))
+            return
         # Numbers
         elif current_char.isnumeric():
             number = self.parse_number(current_char)
-            self.tokens.append(Token(TokenType.NUMBER, self.get_lexeme(), float(number), self.line_num))
+            self.tokens.append(Token(TokenType.NUMBER, self.get_lexeme(), number, self.line_num))
+            return
         # Identifiers and Keywords
         elif current_char.isalpha():
             word = self.parse_word(current_char)
@@ -188,6 +190,8 @@ class Scanner:
                 self.tokens.append(Token(self.keywords[word], word, None, self.line_num))
             else:
                 self.tokens.append(Token(TokenType.IDENTIFIER, word, None, self.line_num))
+            return
         else:
             self.had_error = True
             plox_error("Invalid character", self.line_num, self.source_lines[self.line_num - 1])
+            return
