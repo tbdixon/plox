@@ -1,0 +1,72 @@
+import unittest
+import os
+from scanner.scanner import Scanner
+from scanner.token import Token
+from scanner.tokentypes import TokenType
+
+class TestScanner(unittest.TestCase):
+    # Minimally exercise the actual scanning code
+    def setUp(self) -> None:
+        script = open(os.path.join("sample_lox", "every_symbol.lox"), 'r')
+        self.scanner = Scanner(script.read())
+        script.close()
+        self.expected_tokens = []
+        self.expected_tokens.append(Token(TokenType.FUN, "fun", None, 1))
+        self.expected_tokens.append(Token(TokenType.IDENTIFIER, "funcTest", None, 1))
+        self.expected_tokens.append(Token(TokenType.LEFT_PAREN, "(", None, 1))
+        self.expected_tokens.append(Token(TokenType.IDENTIFIER, "arg", None, 1))
+        self.expected_tokens.append(Token(TokenType.RIGHT_PAREN, ")", None, 1))
+        self.expected_tokens.append(Token(TokenType.LEFT_BRACE, "{", None, 1))
+        self.expected_tokens.append(Token(TokenType.IDENTIFIER, "math", None, 2))
+        self.expected_tokens.append(Token(TokenType.EQUAL, "=", None, 2))
+        self.expected_tokens.append(Token(TokenType.NUMBER, "5", 5, 2))
+        self.expected_tokens.append(Token(TokenType.MINUS, "-", None, 2))
+        self.expected_tokens.append(Token(TokenType.NUMBER, "5", 5, 2))
+        self.expected_tokens.append(Token(TokenType.PLUS, "+", None, 2))
+        self.expected_tokens.append(Token(TokenType.NUMBER, "5", 5, 2))
+        self.expected_tokens.append(Token(TokenType.STAR, "*", None, 2))
+        self.expected_tokens.append(Token(TokenType.NUMBER, "5", 5, 2))
+        self.expected_tokens.append(Token(TokenType.SLASH, "/", None, 2))
+        self.expected_tokens.append(Token(TokenType.NUMBER, "5", 5, 2))
+        self.expected_tokens.append(Token(TokenType.SEMICOLON, ";", None, 2))
+        self.expected_tokens.append(Token(TokenType.CLASS, "class", None, 3))
+        self.expected_tokens.append(Token(TokenType.IDENTIFIER, "c", None, 3))
+        self.expected_tokens.append(Token(TokenType.DOT, ".", None, 3))
+        self.expected_tokens.append(Token(TokenType.IDENTIFIER, "func", None, 3))
+        self.expected_tokens.append(Token(TokenType.NUMBER, "5", 5, 4))
+        self.expected_tokens.append(Token(TokenType.EQUAL, "=", None, 4))
+        self.expected_tokens.append(Token(TokenType.NUMBER, "5", 5, 4))
+        self.expected_tokens.append(Token(TokenType.BANG_EQUAL, "!=", None, 4))
+        self.expected_tokens.append(Token(TokenType.NUMBER, "6", 6, 4))
+        self.expected_tokens.append(Token(TokenType.EQUAL_EQUAL, "==", None, 4))
+        self.expected_tokens.append(Token(TokenType.NUMBER, "6", 6, 4))
+        self.expected_tokens.append(Token(TokenType.GREATER, ">", None, 4))
+        self.expected_tokens.append(Token(TokenType.NUMBER, "4", 4, 4))
+        self.expected_tokens.append(Token(TokenType.GREATER_EQUAL, ">=", None, 4))
+        self.expected_tokens.append(Token(TokenType.NUMBER, "4", 4, 4))
+        self.expected_tokens.append(Token(TokenType.LESS, "<", None, 4))
+        self.expected_tokens.append(Token(TokenType.NUMBER, "10", 10, 4))
+        self.expected_tokens.append(Token(TokenType.LESS_EQUAL, "<=", None, 4))
+        self.expected_tokens.append(Token(TokenType.NUMBER, "10", 10, 4))
+        self.expected_tokens.append(Token(TokenType.STRING, '"Str"', "Str", 5))
+        self.expected_tokens.append(Token(TokenType.AND, "and", None, 6))
+        self.expected_tokens.append(Token(TokenType.ELSE, "else", None, 6))
+        self.expected_tokens.append(Token(TokenType.FALSE, "false", None, 6))
+        self.expected_tokens.append(Token(TokenType.FOR, "for", None, 6))
+        self.expected_tokens.append(Token(TokenType.IF, "if", None, 6))
+        self.expected_tokens.append(Token(TokenType.NIL, "nil", None, 6))
+        self.expected_tokens.append(Token(TokenType.OR, "or", None, 6))
+        self.expected_tokens.append(Token(TokenType.PRINT, "print", None, 6))
+        self.expected_tokens.append(Token(TokenType.SUPER, "super", None, 6))
+        self.expected_tokens.append(Token(TokenType.THIS, "this", None, 6))
+        self.expected_tokens.append(Token(TokenType.TRUE, "true", None, 6))
+        self.expected_tokens.append(Token(TokenType.WHILE, "while", None, 6))
+        self.expected_tokens.append(Token(TokenType.RETURN, "return", None, 8))
+        self.expected_tokens.append(Token(TokenType.RIGHT_BRACE, "}", None, 9))
+        self.expected_tokens.append(Token(TokenType.EOF, "", None, 9))
+
+    def testScaning(self):
+        self.scanner.scan_tokens()
+        self.assertEqual(len(self.scanner.tokens), len(self.expected_tokens))
+        for idx in range(len(self.scanner.tokens)):
+            self.assertEqual(self.scanner.tokens[idx], self.expected_tokens[idx])

@@ -1,0 +1,9 @@
+fun funcTest(arg) {
+    math = 5 - 5 + 5 * 5 / 5;
+    class c.func
+    5 = 5 != 6 == 6 > 4 >= 4 < 10 <=10
+    "Str"
+    and else false for if nil or print super this true while // Comment
+    // Comment two
+    return
+}

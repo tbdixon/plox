@@ -164,7 +164,7 @@ class Scanner:
                 self.advance()
                 self.tokens.append(Token(TokenType.GREATER_EQUAL, ">=", None, self.line_num))
             else:
-                self.tokens.append(Token(TokenType.GREATER, "!", None, self.line_num))
+                self.tokens.append(Token(TokenType.GREATER, ">", None, self.line_num))
             return
         elif current_char == "<":
             if self.preview_next() == "=":
