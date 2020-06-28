@@ -49,6 +49,12 @@ class TestScannerUtils(unittest.TestCase):
         self.assertEqual(self.scanner.parse_word(c), "Third")
 
     def test_parse_number(self):
+        source = "5.0.0"
+        scanner = Scanner(source)
+        c = scanner.advance()
+        scanner.parse_number(c)
+        self.assertTrue(scanner.had_error)
+
         self.scanner.source = "5\n5.0 6"
         c = self.scanner.advance()
         self.assertEqual(self.scanner.parse_number(c), 5)
@@ -64,6 +70,12 @@ class TestScannerUtils(unittest.TestCase):
         self.scanner.source = '"String Time"'
         self.scanner.advance()
         self.assertEqual(self.scanner.parse_string(), "String Time")
+
+        source = '"ABC'
+        scanner= Scanner(source)
+        scanner.advance()
+        scanner.parse_string()
+        self.assertTrue(scanner.had_error)
 
     def test_get_lexeme(self):
         self.scanner.start = 0

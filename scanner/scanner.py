@@ -61,12 +61,15 @@ class Scanner:
         # TODO: Deal with trailing decimals
         number = initial_char
         decimal_seen = False
+        decimal_error = False
         while not self.is_at_end():
             if self.preview_next() == ".":
                 if decimal_seen:
                     # Can't have two decimals in a single number
+                    decimal_error = True
                     self.had_error = True
                     plox_error("Invalid number", self.line_num, self.source_lines[self.line_num - 1])
+                    number = number + self.advance()
                 else:
                     decimal_seen = True
                     number = number + self.advance()
@@ -74,7 +77,10 @@ class Scanner:
                 break
             else:
                 number = number + self.advance()
-        return float(number) if decimal_seen else int(number)
+        if decimal_error:
+            return number
+        else:
+            return float(number) if decimal_seen else int(number)
 
     def parse_string(self) -> str:
         string = ""
