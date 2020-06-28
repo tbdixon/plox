@@ -1,0 +1,16 @@
+fun funcWithArgs(base, power) {
+    var result = base;
+    for (var a = 0; a < power; a = a + 1) {
+        result = result * base;
+    }
+    return result;
+}
+
+fun main() {
+    print "2^3";
+    print funcWithArgs(2, 3);
+    print "10^4";
+    print funcWithArgs(10, 4);
+}
+
+main();
