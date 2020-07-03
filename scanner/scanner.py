@@ -40,7 +40,7 @@ class Scanner:
         "!": TokenType.BANG,
         "!=": TokenType.BANG_EQUAL,
         "=": TokenType.EQUAL,
-        "==": TokenType.BANG_EQUAL,
+        "==": TokenType.EQUAL_EQUAL,
         ">": TokenType.GREATER,
         ">=": TokenType.GREATER_EQUAL,
         "<": TokenType.LESS,
@@ -59,7 +59,7 @@ class Scanner:
             "\r": lambda _: None,
             '\t': lambda _: None,
             "\n": self.handle_newline,
-            "\\": self.scan_slash,
+            "/": self.scan_slash,
             "\"": self.parse_string,
         }
         for t in self.single_tokens:
@@ -78,11 +78,11 @@ class Scanner:
             c = c + self.advance()
         self.tokens.append(Token(self.double_tokens[c], c, None, self.line_num))
 
-    def scan_slash(self, c: str) -> None:
-        if self.preview_next() != "/":
-            self.tokens.append(Token(TokenType.SLASH, "/", None, self.line_num))
-        else:
+    def scan_slash(self, _: str) -> None:
+        if self.preview_next() == "/":
             self.eat_line()
+        else:
+            self.tokens.append(Token(TokenType.SLASH, "/", None, self.line_num))
 
     def is_at_end(self):
         return self.current >= len(self.source)
@@ -106,7 +106,7 @@ class Scanner:
         word = initial_char
         while not self.is_at_end():
             if self.preview_next() == "\n" or self.preview_next() == " " or not self.preview_next().isalpha():
-                return word
+                break
             else:
                 word = word + self.advance()
         if word in self.keywords:
@@ -137,17 +137,17 @@ class Scanner:
         if not decimal_error:
             number = float(number) if decimal_seen else int(number)
         self.tokens.append(Token(TokenType.NUMBER, self.get_lexeme(), number, self.line_num))
-        print(self.tokens)
 
     def parse_string(self, _: str) -> None:
         output = ""
         while not self.is_at_end():
-            if self.preview_next() != '"':
-                output = output + self.advance()
-            else:
+            if self.preview_next() == '"':
                 # Grab the closing quote
                 self.advance()
                 self.tokens.append(Token(TokenType.STRING, self.get_lexeme(), output, self.line_num))
+                return
+            else:
+                output = output + self.advance()
         # If we don't hit the closing quote, we have an error
         self.had_error = True
         plox_error("Reached EOF in string", self.line_num, self.source_lines[self.line_num - 1])
