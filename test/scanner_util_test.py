@@ -1,5 +1,5 @@
 import unittest
-from scanner.scanner import Scanner
+from scanner.scanner import Scanner, Token, TokenType
 
 
 class TestScannerUtils(unittest.TestCase):
@@ -37,16 +37,19 @@ class TestScannerUtils(unittest.TestCase):
         self.assertTrue(self.scanner.is_at_end())
 
     def test_parse_word(self):
-        self.scanner.source = "First\nSecond Third"
+        self.scanner.source = "First\nSecond Third while"
         c = self.scanner.advance()
-        self.assertEqual(self.scanner.parse_word(c), "First")
+        self.assertEqual(self.scanner.parse_word(c), Token(TokenType.IDENTIFIER, "First", None, 1))
         # Simulate the second iteration eating the \n
         self.scanner.advance()
         c = self.scanner.advance()
-        self.assertEqual(self.scanner.parse_word(c), "Second")
+        self.assertEqual(self.scanner.parse_word(c), Token(TokenType.IDENTIFIER, "Second", None, 2))
         self.scanner.advance()
         c = self.scanner.advance()
-        self.assertEqual(self.scanner.parse_word(c), "Third")
+        self.assertEqual(self.scanner.parse_word(c), Token(TokenType.IDENTIFIER, "Third", None, 2))
+        self.scanner.advance()
+        c = self.scanner.advance()
+        self.assertEqual(self.scanner.parse_word(c), Token(TokenType.WHILE, "while", None, 2))
 
     def test_parse_number(self):
         source = "5.0.0"
@@ -57,19 +60,23 @@ class TestScannerUtils(unittest.TestCase):
 
         self.scanner.source = "5\n5.0 6"
         c = self.scanner.advance()
-        self.assertEqual(self.scanner.parse_number(c), 5)
-        # Simulate the second iteration eating the \n
+        self.scanner.parse_number(c)
         self.scanner.advance()
         c = self.scanner.advance()
-        self.assertEqual(self.scanner.parse_number(c), 5.0)
+        scanner.parse_number(c)
         self.scanner.advance()
         c = self.scanner.advance()
-        self.assertEqual(self.scanner.parse_number(c), 6)
+        scanner.parse_number(c)
+        print(self.scanner.tokens)
+
+        self.assertEqual(self.scanner.tokens[0], Token(TokenType.NUMBER, "5", 5, 1))
+        self.assertEqual(self.scanner.tokens[1], Token(TokenType.NUMBER, "5.0", 5.0, 2))
+        self.assertEqual(self.scanner.tokens[2], Token(TokenType.NUMBER, "6", 6, 2))
 
     def test_parse_string(self):
         self.scanner.source = '"String Time"'
         self.scanner.advance()
-        self.assertEqual(self.scanner.parse_string(), "String Time")
+        self.assertEqual(self.scanner.tokens[0], Token(TokenType.STRING, '"String Time"', "abc", 1))
 
         source = '"ABC'
         scanner= Scanner(source)
