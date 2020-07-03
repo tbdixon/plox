@@ -23,6 +23,30 @@ class Scanner:
         "while": TokenType.WHILE,
     }
 
+    single_tokens = {
+        "(": TokenType.LEFT_PAREN,
+        ")": TokenType.RIGHT_PAREN,
+        "{": TokenType.LEFT_BRACE,
+        "}": TokenType.RIGHT_BRACE,
+        ",": TokenType.COMMA,
+        ".": TokenType.DOT,
+        "-": TokenType.MINUS,
+        "+": TokenType.PLUS,
+        ";": TokenType.SEMICOLON,
+        "*": TokenType.STAR
+    }
+
+    double_tokens = {
+        "!": TokenType.BANG,
+        "!=": TokenType.BANG_EQUAL,
+        "=": TokenType.EQUAL,
+        "==": TokenType.EQUAL_EQUAL,
+        ">": TokenType.GREATER,
+        ">=": TokenType.GREATER_EQUAL,
+        "<": TokenType.LESS,
+        "<=": TokenType.LESS_EQUAL
+    }
+
     def __init__(self, source: str) -> None:
         self.source = source
         self.source_lines = source.split("\n")
@@ -30,6 +54,35 @@ class Scanner:
         self.start = self.current = 0
         self.line_num = 1
         self.had_error = False
+        self.scan_funcs = {
+            " ": lambda _: None,
+            "\r": lambda _: None,
+            '\t': lambda _: None,
+            "\n": self.handle_newline,
+            "/": self.scan_slash,
+            "\"": self.parse_string,
+        }
+        for t in self.single_tokens:
+            self.scan_funcs[t] = self.scan_single_char
+        for t in self.double_tokens:
+            self.scan_funcs[t] = self.scan_double_token
+
+    def handle_newline(self, _: str):
+        self.line_num = self.line_num + 1
+
+    def scan_single_char(self, c: str) -> None:
+        self.tokens.append(Token(self.single_tokens[c], c, None, self.line_num))
+
+    def scan_double_token(self, c: str) -> None:
+        if self.preview_next() == "=":
+            c = c + self.advance()
+        self.tokens.append(Token(self.double_tokens[c], c, None, self.line_num))
+
+    def scan_slash(self, _: str) -> None:
+        if self.preview_next() == "/":
+            self.eat_line()
+        else:
+            self.tokens.append(Token(TokenType.SLASH, "/", None, self.line_num))
 
     def is_at_end(self):
         return self.current >= len(self.source)
@@ -40,6 +93,7 @@ class Scanner:
         return self.source[self.current - 1]
 
     def eat_line(self) -> None:
+        # Consume (and throw away) the rest of the current line
         while not self.is_at_end() and self.source[self.current] != '\n':
             self.current = self.current + 1
         self.current = self.current + 1
@@ -48,17 +102,20 @@ class Scanner:
     def preview_next(self) -> str:
         return self.source[self.current:self.current + 1]
 
-    def parse_word(self, initial_char: str) -> str:
+    def parse_word(self, initial_char: str) -> None:
         word = initial_char
         while not self.is_at_end():
             if self.preview_next() == "\n" or self.preview_next() == " " or not self.preview_next().isalpha():
-                return word
+                break
             else:
                 word = word + self.advance()
-        return word
+        if word in self.keywords:
+            self.tokens.append(Token(self.keywords[word], word, None, self.line_num))
+        else:
+            self.tokens.append(Token(TokenType.IDENTIFIER, word, None, self.line_num))
 
-    def parse_number(self, initial_char: str) -> str:
-        # TODO: Deal with trailing decimals
+    def parse_number(self, initial_char: str) -> None:
+        # TODO: Deal with trailing decimals and make this look less terrible.
         number = initial_char
         decimal_seen = False
         decimal_error = False
@@ -77,19 +134,20 @@ class Scanner:
                 break
             else:
                 number = number + self.advance()
-        if decimal_error:
-            return number
-        else:
-            return float(number) if decimal_seen else int(number)
+        if not decimal_error:
+            number = float(number) if decimal_seen else int(number)
+        self.tokens.append(Token(TokenType.NUMBER, self.get_lexeme(), number, self.line_num))
 
-    def parse_string(self) -> str:
-        string = ""
+    def parse_string(self, _: str) -> None:
+        output = ""
         while not self.is_at_end():
-            if self.preview_next() != '"':
-                string = string + self.advance()
-            else:
+            if self.preview_next() == '"':
+                # Grab the closing quote
                 self.advance()
-                return string
+                self.tokens.append(Token(TokenType.STRING, self.get_lexeme(), output, self.line_num))
+                return
+            else:
+                output = output + self.advance()
         # If we don't hit the closing quote, we have an error
         self.had_error = True
         plox_error("Reached EOF in string", self.line_num, self.source_lines[self.line_num - 1])
@@ -105,99 +163,17 @@ class Scanner:
 
     def scan_token(self) -> None:
         current_char = self.advance()
-        # Ignore whitespace
-        if current_char == " " or current_char == '\r' or current_char == '\t':
-            return
-        # Ignore newlines except to increment current line_num
-        elif current_char == "\n":
-            self.line_num = self.line_num + 1
-            return
-        # Simple single character tokens
-        elif current_char == "(":
-            self.tokens.append(Token(TokenType.LEFT_PAREN, "(", None, self.line_num))
-            return
-        elif current_char == ")":
-            self.tokens.append(Token(TokenType.RIGHT_PAREN, ")", None, self.line_num))
-            return
-        elif current_char == "{":
-            self.tokens.append(Token(TokenType.LEFT_BRACE, "{", None, self.line_num))
-            return
-        elif current_char == "}":
-            self.tokens.append(Token(TokenType.RIGHT_BRACE, "}", None, self.line_num))
-            return
-        elif current_char == ",":
-            self.tokens.append(Token(TokenType.COMMA, ",", None, self.line_num))
-            return
-        elif current_char == ".":
-            self.tokens.append(Token(TokenType.DOT, ".", None, self.line_num))
-            return
-        elif current_char == "-":
-            self.tokens.append(Token(TokenType.MINUS, "-", None, self.line_num))
-            return
-        elif current_char == "+":
-            self.tokens.append(Token(TokenType.PLUS, "+", None, self.line_num))
-            return
-        elif current_char == ";":
-            self.tokens.append(Token(TokenType.SEMICOLON, ";", None, self.line_num))
-            return
-        elif current_char == "*":
-            self.tokens.append(Token(TokenType.STAR, "*", None, self.line_num))
-            return
-        # Comment vs Slash
-        elif current_char == "/":
-            if self.preview_next() != "/":
-                self.tokens.append(Token(TokenType.SLASH, "/", None, self.line_num))
-            else:
-                self.eat_line()
-            return
-        # One or two character tokens
-        elif current_char == "!":
-            if self.preview_next() == "=":
-                self.advance()
-                self.tokens.append(Token(TokenType.BANG_EQUAL, "!=", None, self.line_num))
-            else:
-                self.tokens.append(Token(TokenType.BANG, "!", None, self.line_num))
-            return
-        elif current_char == "=":
-            if self.preview_next() == "=":
-                self.advance()
-                self.tokens.append(Token(TokenType.EQUAL_EQUAL, "==", None, self.line_num))
-            else:
-                self.tokens.append(Token(TokenType.EQUAL, "=", None, self.line_num))
-            return
-        elif current_char == ">":
-            if self.preview_next() == "=":
-                self.advance()
-                self.tokens.append(Token(TokenType.GREATER_EQUAL, ">=", None, self.line_num))
-            else:
-                self.tokens.append(Token(TokenType.GREATER, ">", None, self.line_num))
-            return
-        elif current_char == "<":
-            if self.preview_next() == "=":
-                self.advance()
-                self.tokens.append(Token(TokenType.LESS_EQUAL, "<=", None, self.line_num))
-            else:
-                self.tokens.append(Token(TokenType.LESS, "<", None, self.line_num))
-            return
-        # Strings
-        elif current_char == '"':
-            string = self.parse_string()
-            self.tokens.append(Token(TokenType.STRING, self.get_lexeme(), string, self.line_num))
+        if current_char in self.scan_funcs:
+            self.scan_funcs[current_char](current_char)
             return
         # Numbers
         elif current_char.isnumeric():
-            number = self.parse_number(current_char)
-            self.tokens.append(Token(TokenType.NUMBER, self.get_lexeme(), number, self.line_num))
+            self.parse_number(current_char)
             return
         # Identifiers and Keywords
         elif current_char.isalpha():
-            word = self.parse_word(current_char)
-            if word in self.keywords:
-                self.tokens.append(Token(self.keywords[word], word, None, self.line_num))
-            else:
-                self.tokens.append(Token(TokenType.IDENTIFIER, word, None, self.line_num))
+            self.parse_word(current_char)
             return
         else:
             self.had_error = True
             plox_error("Invalid character", self.line_num, self.source_lines[self.line_num - 1])
-            return
