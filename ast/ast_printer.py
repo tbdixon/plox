@@ -4,7 +4,7 @@ from multimethod.multimethod import multimethod
 
 @multimethod
 def ast_print(literal: Literal) -> str:
-    if literal.value:
+    if literal.value is not None:
         return str(literal.value)
     else:
         return "Nil"

@@ -1,5 +1,7 @@
 import sys
 from scanner.scanner import Scanner
+from parser.parser import Parser
+from ast.ast_printer import ast_print
 
 
 def run_prompt() -> None:
@@ -19,9 +21,9 @@ def run_file(filename: str) -> None:
 def run(source: str) -> None:
     s = Scanner(source)
     s.scan_tokens()
-    for t in s.tokens:
-        # if HAD_ERROR...
-        print(t)
+    p = Parser(s.tokens)
+    ast = p.parse()
+    print(ast_print(ast))
 
 
 def main():

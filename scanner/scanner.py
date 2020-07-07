@@ -1,9 +1,10 @@
 from .token import Token
 from .tokentypes import TokenType
-from error_handler.error_handler import plox_error
+from error_handling.error_printer import plox_error
 
 
 class Scanner:
+    # TODO: this should probably be paired up as a map with the type enum
     keywords = {
         "and": TokenType.AND,
         "class": TokenType.CLASS,
@@ -58,19 +59,38 @@ class Scanner:
             " ": lambda _: None,
             "\r": lambda _: None,
             '\t': lambda _: None,
-            "\n": self.handle_newline,
+            "\n": self.scan_newline,
             "/": self.scan_slash,
             "\"": self.parse_string,
         }
         for t in self.single_tokens:
-            self.scan_funcs[t] = self.scan_single_char
+            self.scan_funcs[t] = self.scan_single_token
         for t in self.double_tokens:
             self.scan_funcs[t] = self.scan_double_token
 
-    def handle_newline(self, _: str):
+
+    def is_at_end(self):
+        return self.current >= len(self.source)
+
+    def advance(self) -> str:
+        # Return the current character and advance current
+        self.current = self.current + 1
+        return self.source[self.current - 1]
+
+    def preview_next(self) -> str:
+        return self.source[self.current:self.current + 1]
+
+    def eat_line(self) -> None:
+        # Consume (and throw away) the rest of the current line
+        while not self.is_at_end() and self.source[self.current] != '\n':
+            self.current = self.current + 1
+        self.current = self.current + 1
         self.line_num = self.line_num + 1
 
-    def scan_single_char(self, c: str) -> None:
+    def scan_newline(self, _: str):
+        self.line_num = self.line_num + 1
+
+    def scan_single_token(self, c: str) -> None:
         self.tokens.append(Token(self.single_tokens[c], c, None, self.line_num))
 
     def scan_double_token(self, c: str) -> None:
@@ -83,24 +103,6 @@ class Scanner:
             self.eat_line()
         else:
             self.tokens.append(Token(TokenType.SLASH, "/", None, self.line_num))
-
-    def is_at_end(self):
-        return self.current >= len(self.source)
-
-    def advance(self) -> str:
-        # Return the current character and advance current
-        self.current = self.current + 1
-        return self.source[self.current - 1]
-
-    def eat_line(self) -> None:
-        # Consume (and throw away) the rest of the current line
-        while not self.is_at_end() and self.source[self.current] != '\n':
-            self.current = self.current + 1
-        self.current = self.current + 1
-        self.line_num = self.line_num + 1
-
-    def preview_next(self) -> str:
-        return self.source[self.current:self.current + 1]
 
     def parse_word(self, initial_char: str) -> None:
         word = initial_char
