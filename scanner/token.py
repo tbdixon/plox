@@ -1,5 +1,6 @@
-from .tokentypes import TokenType
+from typing import List
 
+from .tokentypes import TokenType
 
 class Token:
     def __init__(self, tokentype: TokenType, lexeme: str, literal, line: int) -> None:
@@ -21,3 +22,6 @@ class Token:
         return f'Type: {self.tokentype} Lexeme: {self.lexeme} Literal: {self.literal} Line {self.line}'
         # Useful to generate code for test output...
         # return f'self.expected_tokens.append(Token({self.tokentype}, "{self.lexeme}", {self.literal}, {self.line}))'
+
+    def is_token_type(self, match_types: List[TokenType]):
+        return self.tokentype in match_types
