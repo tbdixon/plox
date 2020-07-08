@@ -1,6 +1,6 @@
 from .token import Token
 from .tokentypes import TokenType
-from error_handling.error_printer import plox_error
+from error_handling.error_printer import scanner_error_print
 
 
 class Scanner:
@@ -127,7 +127,7 @@ class Scanner:
                     # Can't have two decimals in a single number
                     decimal_error = True
                     self.had_error = True
-                    plox_error("Invalid number", self.line_num, self.source_lines[self.line_num - 1])
+                    scanner_error_print("Invalid number", self.line_num, self.source_lines[self.line_num - 1])
                     number = number + self.advance()
                 else:
                     decimal_seen = True
@@ -152,7 +152,7 @@ class Scanner:
                 output = output + self.advance()
         # If we don't hit the closing quote, we have an error
         self.had_error = True
-        plox_error("Reached EOF in string", self.line_num, self.source_lines[self.line_num - 1])
+        scanner_error_print("Reached EOF in string", self.line_num, self.source_lines[self.line_num - 1])
 
     def get_lexeme(self) -> str:
         return self.source[self.start:self.current]
@@ -178,4 +178,4 @@ class Scanner:
             return
         else:
             self.had_error = True
-            plox_error("Invalid character", self.line_num, self.source_lines[self.line_num - 1])
+            scanner_error_print("Invalid character", self.line_num, self.source_lines[self.line_num - 1])

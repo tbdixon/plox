@@ -2,6 +2,8 @@ import sys
 from scanner.scanner import Scanner
 from parser.parser import Parser
 from ast.ast_printer import ast_print
+from ast.expr import InvalidExpr
+from error_handling.error_printer import parser_error_print
 
 
 def run_prompt() -> None:
@@ -23,7 +25,10 @@ def run(source: str) -> None:
     s.scan_tokens()
     p = Parser(s.tokens)
     ast = p.parse()
-    print(ast_print(ast))
+    if type(ast) == InvalidExpr:
+        parser_error_print(ast.error, s.source_lines)
+    else:
+        print(ast_print(ast))
 
 
 def main():

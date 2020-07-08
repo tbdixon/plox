@@ -1,6 +1,7 @@
 from typing import List
 
 from ast.expr import *
+from error_handling.error import ParseError
 from scanner.token import Token
 from scanner.tokentypes import TokenType
 
@@ -9,11 +10,14 @@ class Parser:
     def __init__(self, tokens: List[Token]):
         self.tokens = tokens
         self.current_token_idx = 0
+        self.had_error = False
+
+    def is_at_end(self):
+        return self.current_token_idx == len(self.tokens)
 
     def current_token(self) -> Token:
         return self.tokens[self.current_token_idx]
 
-    # Todo probably want some error checking here.
     def previous_token(self) -> Token:
         return self.tokens[self.current_token_idx - 1]
 
@@ -21,7 +25,17 @@ class Parser:
         return self.tokens[self.current_token_idx + 1]
 
     def parse(self) -> Expr:
-        return self.equality()
+        expr = self.expression()
+        if self.is_at_end():
+            return expr
+        else:
+            return InvalidExpr(ParseError("Incomplete parsing", self.current_token()))
+
+    def expression(self) -> Expr:
+        try:
+            return self.equality()
+        except ParseError as err:
+            return InvalidExpr(err)
 
     def equality(self) -> Expr:
         expr = self.comparison()
@@ -73,13 +87,18 @@ class Parser:
         if self.current_token().is_token_type([TokenType.FALSE]):
             self.current_token_idx += 1
             return Literal(False)
-        if self.current_token().is_token_type([TokenType.TRUE]):
+        elif self.current_token().is_token_type([TokenType.TRUE]):
             self.current_token_idx += 1
             return Literal(True)
-        if self.current_token().is_token_type([TokenType.NIL]):
+        elif self.current_token().is_token_type([TokenType.NIL]):
             self.current_token_idx += 1
             return Literal(None)
-        if self.current_token().is_token_type([TokenType.STRING, TokenType.NUMBER]):
+        elif self.current_token().is_token_type([TokenType.STRING, TokenType.NUMBER]):
             self.current_token_idx += 1
             return Literal(self.previous_token().literal)
-        # Deal with grouping ()
+        elif self.current_token().is_token_type([TokenType.LEFT_PAREN]):
+            #TODO: need to verify the closing paren is present
+            self.current_token_idx += 1
+            return Grouping(self.expression())
+        self.had_error = True
+        raise ParseError(f'Invalid token found', self.current_token())
