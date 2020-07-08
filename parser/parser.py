@@ -13,7 +13,6 @@ class Parser:
     def current_token(self) -> Token:
         return self.tokens[self.current_token_idx]
 
-    # Todo probably want some error checking here.
     def previous_token(self) -> Token:
         return self.tokens[self.current_token_idx - 1]
 
@@ -21,6 +20,9 @@ class Parser:
         return self.tokens[self.current_token_idx + 1]
 
     def parse(self) -> Expr:
+        return self.expression()
+
+    def expression(self)-> Expr:
         return self.equality()
 
     def equality(self) -> Expr:
@@ -73,13 +75,16 @@ class Parser:
         if self.current_token().is_token_type([TokenType.FALSE]):
             self.current_token_idx += 1
             return Literal(False)
-        if self.current_token().is_token_type([TokenType.TRUE]):
+        elif self.current_token().is_token_type([TokenType.TRUE]):
             self.current_token_idx += 1
             return Literal(True)
-        if self.current_token().is_token_type([TokenType.NIL]):
+        elif self.current_token().is_token_type([TokenType.NIL]):
             self.current_token_idx += 1
             return Literal(None)
-        if self.current_token().is_token_type([TokenType.STRING, TokenType.NUMBER]):
+        elif self.current_token().is_token_type([TokenType.STRING, TokenType.NUMBER]):
             self.current_token_idx += 1
             return Literal(self.previous_token().literal)
-        # Deal with grouping ()
+        elif self.current_token().is_token_type([TokenType.LEFT_PAREN]):
+            self.current_token_idx += 1
+            return Grouping(self.expression())
+
