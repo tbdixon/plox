@@ -1,9 +1,15 @@
 from abc import ABC
 from scanner.token import Token
+from error_handling.error import Error
 
 
 class Expr(ABC):
     pass
+
+
+class InvalidExpr(Expr):
+    def __init__(self, error: Error):
+        self.error = error
 
 
 class Literal(Expr):

@@ -1,6 +1,7 @@
 from typing import List
 
 from ast.expr import *
+from error_handling.error import ParseError
 from scanner.token import Token
 from scanner.tokentypes import TokenType
 
@@ -9,6 +10,10 @@ class Parser:
     def __init__(self, tokens: List[Token]):
         self.tokens = tokens
         self.current_token_idx = 0
+        self.had_error = False
+
+    def is_at_end(self):
+        return self.current_token_idx == len(self.tokens)
 
     def current_token(self) -> Token:
         return self.tokens[self.current_token_idx]
@@ -20,10 +25,17 @@ class Parser:
         return self.tokens[self.current_token_idx + 1]
 
     def parse(self) -> Expr:
-        return self.expression()
+        expr = self.expression()
+        if self.is_at_end():
+            return expr
+        else:
+            return InvalidExpr(ParseError("Incomplete parsing", self.current_token()))
 
-    def expression(self)-> Expr:
-        return self.equality()
+    def expression(self) -> Expr:
+        try:
+            return self.equality()
+        except ParseError as err:
+            return InvalidExpr(err)
 
     def equality(self) -> Expr:
         expr = self.comparison()
@@ -85,6 +97,8 @@ class Parser:
             self.current_token_idx += 1
             return Literal(self.previous_token().literal)
         elif self.current_token().is_token_type([TokenType.LEFT_PAREN]):
+            #TODO: need to verify the closing paren is present
             self.current_token_idx += 1
             return Grouping(self.expression())
-
+        self.had_error = True
+        raise ParseError(f'Invalid token found', self.current_token())
