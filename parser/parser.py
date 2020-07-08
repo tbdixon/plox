@@ -13,7 +13,7 @@ class Parser:
         self.had_error = False
 
     def is_at_end(self):
-        return self.current_token_idx == len(self.tokens)
+        return self.current_token().is_token_type([TokenType.EOF])
 
     def current_token(self) -> Token:
         return self.tokens[self.current_token_idx]
