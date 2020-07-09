@@ -97,8 +97,12 @@ class Parser:
             self.current_token_idx += 1
             return Literal(self.previous_token().literal)
         elif self.current_token().is_token_type([TokenType.LEFT_PAREN]):
-            #TODO: need to verify the closing paren is present
             self.current_token_idx += 1
-            return Grouping(self.expression())
+            grouping_expr = Grouping(self.expression())
+            if not self.current_token().is_token_type([TokenType.RIGHT_PAREN]):
+                raise ParseError(f'Missing right paren', self.current_token())
+            else:
+                self.current_token_idx += 1
+                return grouping_expr
         self.had_error = True
         raise ParseError(f'Invalid token found', self.current_token())
