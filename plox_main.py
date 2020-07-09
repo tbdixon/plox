@@ -2,6 +2,7 @@ import sys
 from scanner.scanner import Scanner
 from parser.parser import Parser
 from ast.ast_printer import ast_print
+from ast.ast_execute import ast_execute
 from ast.expr import InvalidExpr
 from error_handling.error_printer import parser_error_print
 
@@ -29,6 +30,7 @@ def run(source: str) -> None:
         parser_error_print(ast.error, s.source_lines)
     else:
         print(ast_print(ast))
+        print(ast_execute(ast))
 
 
 def main():
