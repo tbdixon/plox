@@ -36,10 +36,10 @@ def ast_execute(binary: Binary):
         TokenType.MINUS: lambda: is_numeric(left) and is_numeric(right),
         TokenType.BANG_EQUAL: lambda: True,
         TokenType.EQUAL_EQUAL: lambda: True,
-        TokenType.GREATER: lambda: True,
-        TokenType.GREATER_EQUAL: lambda: True,
-        TokenType.LESS: lambda: True,
-        TokenType.LESS_EQUAL: lambda: True,
+        TokenType.GREATER: lambda: is_numeric(left) and is_numeric(right),
+        TokenType.GREATER_EQUAL: lambda: is_numeric(left) and is_numeric(right),
+        TokenType.LESS: lambda: is_numeric(left) and is_numeric(right),
+        TokenType.LESS_EQUAL: lambda: is_numeric(left) and is_numeric(right),
     }
 
     execution_logic = {
@@ -55,8 +55,8 @@ def ast_execute(binary: Binary):
         TokenType.LESS_EQUAL: lambda: left <= right,
     }
 
-    if binary.operator.tokentype not in validation_logic or not validation_logic[binary.operator.tokentype]:
-        raise LoxRuntimeError("Invalid token", binary)
+    if binary.operator.tokentype not in validation_logic or not validation_logic[binary.operator.tokentype]():
+        raise LoxRuntimeError("Invalid binary operands", binary)
     return execution_logic[binary.operator.tokentype]()
 
 
