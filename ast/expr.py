@@ -1,14 +1,15 @@
 from abc import ABC
 from scanner.token import Token
-from error_handling.error import Error
+from error_handling.loxerror import LoxError
 
 
 class Expr(ABC):
-    pass
+    def __str__(self):
+        return ' '.join([f'{attr}: {val}' for attr, val in vars(self).items()])
 
 
 class InvalidExpr(Expr):
-    def __init__(self, error: Error):
+    def __init__(self, error: LoxError):
         self.error = error
 
 

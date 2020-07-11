@@ -1,7 +1,7 @@
 from typing import List
 
 from ast.expr import *
-from error_handling.error import ParseError
+from error_handling.loxerror import LoxParseError
 from scanner.token import Token
 from scanner.tokentypes import TokenType
 
@@ -29,12 +29,12 @@ class Parser:
         if self.is_at_end():
             return expr
         else:
-            return InvalidExpr(ParseError("Incomplete parsing", self.current_token()))
+            return InvalidExpr(LoxParseError("Incomplete parsing", self.current_token()))
 
     def expression(self) -> Expr:
         try:
             return self.equality()
-        except ParseError as err:
+        except LoxParseError as err:
             return InvalidExpr(err)
 
     def equality(self) -> Expr:
@@ -100,9 +100,9 @@ class Parser:
             self.current_token_idx += 1
             grouping_expr = Grouping(self.expression())
             if not self.current_token().is_token_type([TokenType.RIGHT_PAREN]):
-                raise ParseError(f'Missing right paren', self.current_token())
+                raise LoxParseError(f'Missing right paren', self.current_token())
             else:
                 self.current_token_idx += 1
                 return grouping_expr
         self.had_error = True
-        raise ParseError(f'Invalid token found', self.current_token())
+        raise LoxParseError(f'Invalid token found', self.current_token())
