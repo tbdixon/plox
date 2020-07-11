@@ -5,6 +5,7 @@ from ast.ast_printer import ast_print
 from ast.ast_execute import ast_execute
 from ast.expr import InvalidExpr
 from error_handling.error_printer import parser_error_print
+from error_handling.loxerror import LoxRuntimeError
 
 
 def run_prompt() -> None:
@@ -24,13 +25,18 @@ def run_file(filename: str) -> None:
 def run(source: str) -> None:
     s = Scanner(source)
     s.scan_tokens()
+
     p = Parser(s.tokens)
     ast = p.parse()
+
     if type(ast) == InvalidExpr:
         parser_error_print(ast.error, s.source_lines)
     else:
         print(ast_print(ast))
-        print(ast_execute(ast))
+        try:
+            print(ast_execute(ast))
+        except LoxRuntimeError as err:
+            print(f'{err.msg}: {err.expr}')
 
 
 def main():

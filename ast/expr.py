@@ -5,7 +5,7 @@ from error_handling.loxerror import LoxError
 
 class Expr(ABC):
     def __str__(self):
-        return ' '.join([f'{attr}: {val}' for attr, val in vars(self).items()])
+        return ' '.join([f'{attr}: [{val}]' for attr, val in vars(self).items()])
 
 
 class InvalidExpr(Expr):
