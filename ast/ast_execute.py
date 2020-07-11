@@ -55,7 +55,7 @@ def ast_execute(binary: Binary):
         TokenType.LESS_EQUAL: lambda: left <= right,
     }
 
-    if binary.operator.tokentype not in validation_logic or not validation_logic[binary.operator.tokentype]:
+    if binary.operator.tokentype not in validation_logic or not validation_logic[binary.operator.tokentype]():
         raise LoxRuntimeError("Invalid token", binary)
     return execution_logic[binary.operator.tokentype]()
 
