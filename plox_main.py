@@ -10,9 +10,16 @@ from error_handling.loxerror import LoxRuntimeError
 
 def run_prompt() -> None:
     while True:
-        line = input("> ")
-        if line is not None:
-            # Handle ctrl-c etc in a clean manner
+        try:
+            line = input("> ")
+        # Probably better to use signals for SIGINT, but this is quick and easy for now
+        except (EOFError, KeyboardInterrupt) as err:
+            if isinstance(err, EOFError):
+                sys.exit(0)
+            else:
+                print("\n")
+                continue
+        if len(line):
             run(line)
 
 
