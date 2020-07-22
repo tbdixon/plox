@@ -1,8 +1,7 @@
 import sys
 from scanner.scanner import Scanner
 from parser.parser import Parser
-from ast.ast_printer import ast_print
-from ast.ast_execute import ast_execute
+from interpreter.execute_expr import execute_expr
 from ast.expr import InvalidExpr
 from error_handling.error_printer import parser_error_print
 from error_handling.loxerror import LoxRuntimeError
@@ -20,6 +19,8 @@ def run_prompt() -> None:
                 print("\n")
                 continue
         if len(line):
+            # if line[-1] != ";":
+            #    line.append(";")
             run(line)
 
 
@@ -39,9 +40,8 @@ def run(source: str) -> None:
     if type(ast) == InvalidExpr:
         parser_error_print(ast.error, s.source_lines)
     else:
-        print(ast_print(ast))
         try:
-            print(ast_execute(ast))
+            print(execute_expr(ast))
         except LoxRuntimeError as err:
             print(f'{err.msg}: {err.expr}')
 

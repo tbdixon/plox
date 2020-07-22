@@ -1,18 +1,18 @@
 from multimethod.multimethod import multimethod
 from scanner.tokentypes import TokenType
 from error_handling.loxerror import LoxRuntimeError
-from .expr import *
-from .validations import is_numeric, is_string
+from ast.expr import *
+from ast.validations import is_numeric, is_string
 
 
 @multimethod
-def ast_execute(literal: Literal):
+def execute_expr(literal: Literal):
     return literal.value
 
 
 @multimethod
-def ast_execute(unary: Unary):
-    right = ast_execute(unary.right)
+def execute_expr(unary: Unary):
+    right = execute_expr(unary.right)
     operator = unary.operator.lexeme
     if operator == "!":
         return not right
@@ -25,9 +25,9 @@ def ast_execute(unary: Unary):
 
 
 @multimethod
-def ast_execute(binary: Binary):
-    left = ast_execute(binary.left)
-    right = ast_execute(binary.right)
+def execute_expr(binary: Binary):
+    left = execute_expr(binary.left)
+    right = execute_expr(binary.right)
 
     validation_logic = {
         TokenType.SLASH: lambda: is_numeric(left) and is_numeric(right),
@@ -56,10 +56,10 @@ def ast_execute(binary: Binary):
     }
 
     if binary.operator.tokentype not in validation_logic or not validation_logic[binary.operator.tokentype]():
-        raise LoxRuntimeError("Invalid binary operands", binary)
+        raise LoxRuntimeError("Invalid binary operands, must be two numbers or two strings", binary)
     return execution_logic[binary.operator.tokentype]()
 
 
 @multimethod
-def ast_execute(grouping: Grouping):
-    return ast_execute(grouping.expression)
+def execute_expr(grouping: Grouping):
+    return execute_expr(grouping.expression)
