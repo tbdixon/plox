@@ -2,6 +2,7 @@ import sys
 from scanner.scanner import Scanner
 from parser.parser import Parser
 from interpreter.execute_expr import execute_expr
+from interpreter.interpreter import Interpreter
 from ast.expr import InvalidExpr
 from error_handling.error_printer import parser_error_print
 from error_handling.loxerror import LoxRuntimeError
@@ -31,19 +32,20 @@ def run_file(filename: str) -> None:
 
 
 def run(source: str) -> None:
-    s = Scanner(source)
-    s.scan_tokens()
+    scanner = Scanner(source)
+    scanner.scan_tokens()
 
-    p = Parser(s.tokens)
-    ast = p.parse()
+    parser = Parser(scanner.tokens)
+    statements = parser.parse()
 
-    if type(ast) == InvalidExpr:
-        parser_error_print(ast.error, s.source_lines)
-    else:
-        try:
-            print(execute_expr(ast))
-        except LoxRuntimeError as err:
-            print(f'{err.msg}: {err.expr}')
+    if parser.had_error:
+        print(f'Error parsing...')
+
+    interpreter = Interpreter(statements)
+    try:
+        interpreter.interpret()
+    except LoxRuntimeError as err:
+        print(f'{err.msg}: {err.expr}')
 
 
 def main():

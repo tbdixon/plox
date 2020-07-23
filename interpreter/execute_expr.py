@@ -63,3 +63,7 @@ def execute_expr(binary: Binary):
 @multimethod
 def execute_expr(grouping: Grouping):
     return execute_expr(grouping.expression)
+
+@multimethod
+def execute_expr(error_expr: InvalidExpr):
+    print(f'{error_expr.error.msg}: {error_expr.error.val}')
