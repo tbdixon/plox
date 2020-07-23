@@ -7,7 +7,7 @@ class Stmt(ABC):
 
 
 class PrintStmt(Stmt):
-    def __init(self, expression: Expr):
+    def __init__(self, expression: Expr):
         self.expression = expression
 
 

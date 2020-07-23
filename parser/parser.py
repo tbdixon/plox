@@ -13,6 +13,7 @@ class Parser:
         self.current_token_idx = 0
         self.statements = []
         self.had_error = False
+        self.error = None
 
     def is_at_end(self):
         return self.current_token().is_token_type([TokenType.EOF])
@@ -24,13 +25,14 @@ class Parser:
         return self.tokens[self.current_token_idx - 1]
 
     def next_token(self):
-        return self.tokens[self.advance()]
+        return self.tokens[self.current_token_idx + 1]
 
     def advance(self):
         self.current_token_idx += 1
 
     def check_consume_next(self, token_type: TokenType, error: str):
-        if not self.next_token().is_token_type(token_type):
+        if self.is_at_end() or not self.current_token().is_token_type([token_type]):
+            self.had_error = True
             raise LoxParseError(error)
         self.advance()
 
