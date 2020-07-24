@@ -1,9 +1,7 @@
 import sys
 from scanner.scanner import Scanner
 from parser.parser import Parser
-from interpreter.execute_expr import execute_expr
 from interpreter.interpreter import Interpreter
-from ast.expr import InvalidExpr
 from error_handling.error_printer import parser_error_print
 from error_handling.loxerror import LoxRuntimeError
 
@@ -40,13 +38,14 @@ def run(source: str, interpreter: Interpreter) -> None:
     statements = parser.parse()
 
     if parser.had_error:
-        # Run through the parse errors
-        print(f'Error parsing...')
-
-    try:
-        interpreter.interpret(statements)
-    except LoxRuntimeError as err:
-        print(f'{err.msg}: {err.expr}')
+        print(f'Error parsing')
+        for err in parser.errors:
+            parser_error_print(err, scanner.source_lines)
+    else:
+        try:
+            interpreter.interpret(statements)
+        except LoxRuntimeError as err:
+            print(f'{err.msg}')
 
 
 def main():

@@ -1,15 +1,13 @@
-
 class LoxError(Exception):
     pass
 
 
 class LoxParseError(LoxError):
-    def __init__(self, msg: str, token = None):
+    def __init__(self, msg: str, token):
         self.msg = msg
-        self.val = token
+        self.token = token
 
 
 class LoxRuntimeError(LoxError):
-    def __init__(self, msg: str, expr = None):
+    def __init__(self, msg: str):
         self.msg = msg
-        self.val = expr

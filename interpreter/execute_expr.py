@@ -19,10 +19,10 @@ def execute_expr(unary: Unary, env: Environment):
         return not right
     elif operator == "-":
         if not is_numeric(right):
-            raise LoxRuntimeError("Invalid operand for unary -", unary)
+            raise LoxRuntimeError("Invalid operand for unary -")
         else:
             return -right
-    raise LoxRuntimeError("Invalid operator found for unary", unary)
+    raise LoxRuntimeError("Invalid operator found for unary")
 
 
 @multimethod

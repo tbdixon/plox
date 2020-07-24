@@ -8,4 +8,4 @@ def scanner_error_print(msg: str, line_num: int, line: str) -> None:
 
 
 def parser_error_print(error: LoxParseError, source: List[str]) -> None:
-    print(f'{error.msg} on {error.token}\nLine {error.token.line}: {source[error.token.line - 1]} ')
+    print(f'{error.msg}\nLine {error.token.line}: {source[error.token.line - 1]} ')

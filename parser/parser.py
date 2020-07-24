@@ -32,7 +32,7 @@ class Parser:
 
     def check_consume_next(self, token_type: TokenType, error: str):
         if self.is_at_end() or not self.current_token().is_token_type([token_type]):
-            raise LoxParseError(error)
+            raise LoxParseError(error, self.previous_token())
         self.advance()
 
     def advance_if_match(self, token_types: List[TokenType]):
