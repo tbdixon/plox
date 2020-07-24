@@ -1,6 +1,6 @@
 from typing import List
 
-from ast.expr import InvalidExpr, Literal, Binary, Grouping, Unary
+from ast.expr import Literal, Binary, Grouping, Unary, Variable
 from ast.stmt import *
 from error_handling.loxerror import LoxParseError
 from scanner.token import Token
@@ -13,7 +13,7 @@ class Parser:
         self.current_token_idx = 0
         self.statements = []
         self.had_error = False
-        self.error = None
+        self.errors = []
 
     def is_at_end(self):
         return self.current_token().is_token_type([TokenType.EOF])
@@ -32,26 +32,44 @@ class Parser:
 
     def check_consume_next(self, token_type: TokenType, error: str):
         if self.is_at_end() or not self.current_token().is_token_type([token_type]):
-            self.had_error = True
-            raise LoxParseError(error)
+            raise LoxParseError(error, self.previous_token())
         self.advance()
 
-    def match_type(self, token_types: List[TokenType]):
-        return self.current_token().is_token_type(token_types)
+    def advance_if_match(self, token_types: List[TokenType]):
+        if self.current_token().is_token_type(token_types):
+            self.advance()
+            return True
+        return False
+
+    def synchronize(self):
+        pass
 
     def parse(self) -> List[Stmt]:
-        try:
-            while not self.is_at_end():
-                self.statements.append(self.statement())
-        except LoxParseError as err:
-            return [ExprStmt(InvalidExpr(err))]
-        if self.had_error:
-            return [ExprStmt(InvalidExpr(LoxParseError("Issue parsing", self.current_token())))]
+        while not self.is_at_end():
+            self.statements.append(self.declaration())
         return self.statements
 
+    def declaration(self) -> Stmt:
+        try:
+            if self.advance_if_match([TokenType.VAR]):
+                return self.var_declaration()
+            return self.statement()
+        except LoxParseError as err:
+            self.synchronize()
+            self.had_error = True
+            self.errors.append(err)
+
+    def var_declaration(self) -> Stmt:
+        var_name = self.current_token()
+        expr = None
+        self.check_consume_next(TokenType.IDENTIFIER, "Missing variable name")
+        if self.advance_if_match([TokenType.EQUAL]):
+            expr = self.expression()
+        self.check_consume_next(TokenType.SEMICOLON, "Expect ';' after variable declaration")
+        return VarStmt(var_name, expr)
+
     def statement(self) -> Stmt:
-        if self.match_type([TokenType.PRINT]):
-            self.advance()
+        if self.advance_if_match([TokenType.PRINT]):
             return self.print_statement()
         else:
             return self.expr_statement()
@@ -72,8 +90,7 @@ class Parser:
     def equality(self) -> Expr:
         expr = self.comparison()
 
-        while self.match_type([TokenType.EQUAL_EQUAL, TokenType.BANG_EQUAL]):
-            self.advance()
+        while self.advance_if_match([TokenType.EQUAL_EQUAL, TokenType.BANG_EQUAL]):
             expr = Binary(expr, self.previous_token(), self.comparison())
 
         return expr
@@ -81,8 +98,7 @@ class Parser:
     def comparison(self) -> Expr:
         expr = self.addition()
 
-        while self.match_type([TokenType.LESS, TokenType.LESS_EQUAL, TokenType.GREATER, TokenType.GREATER_EQUAL]):
-            self.advance()
+        while self.advance_if_match([TokenType.LESS, TokenType.LESS_EQUAL, TokenType.GREATER, TokenType.GREATER_EQUAL]):
             expr = Binary(expr, self.previous_token(), self.comparison())
 
         return expr
@@ -90,8 +106,7 @@ class Parser:
     def addition(self) -> Expr:
         expr = self.multiplication()
 
-        while self.match_type([TokenType.PLUS, TokenType.MINUS]):
-            self.advance()
+        while self.advance_if_match([TokenType.PLUS, TokenType.MINUS]):
             expr = Binary(expr, self.previous_token(), self.comparison())
 
         return expr
@@ -99,15 +114,13 @@ class Parser:
     def multiplication(self) -> Expr:
         expr = self.unary()
 
-        while self.match_type([TokenType.STAR, TokenType.SLASH]):
-            self.advance()
+        while self.advance_if_match([TokenType.STAR, TokenType.SLASH]):
             expr = Binary(expr, self.previous_token(), self.comparison())
 
         return expr
 
     def unary(self) -> Expr:
-        if self.match_type([TokenType.BANG, TokenType.MINUS]):
-            self.advance()
+        if self.advance_if_match([TokenType.BANG, TokenType.MINUS]):
             expr = Unary(self.previous_token(), self.unary())
         else:
             expr = self.primary()
@@ -115,25 +128,20 @@ class Parser:
         return expr
 
     def primary(self) -> Expr:
-        if self.match_type([TokenType.FALSE]):
-            self.advance()
+        if self.advance_if_match([TokenType.FALSE]):
             return Literal(False)
-        elif self.match_type([TokenType.TRUE]):
-            self.advance()
+        elif self.advance_if_match([TokenType.TRUE]):
             return Literal(True)
-        elif self.match_type([TokenType.NIL]):
-            self.advance()
+        elif self.advance_if_match([TokenType.NIL]):
             return Literal(None)
-        elif self.match_type([TokenType.STRING, TokenType.NUMBER]):
-            self.advance()
+        elif self.advance_if_match([TokenType.STRING, TokenType.NUMBER]):
             return Literal(self.previous_token().literal)
-        elif self.match_type([TokenType.LEFT_PAREN]):
-            self.advance()
+        elif self.advance_if_match([TokenType.IDENTIFIER]):
+            return Variable(self.previous_token())
+        elif self.advance_if_match([TokenType.LEFT_PAREN]):
             grouping_expr = Grouping(self.expression())
-            if not self.match_type([TokenType.RIGHT_PAREN]):
+            if not self.advance_if_match([TokenType.RIGHT_PAREN]):
                 raise LoxParseError(f'Missing right paren', self.current_token())
             else:
-                self.advance()
                 return grouping_expr
-        self.had_error = True
         raise LoxParseError(f'Invalid token found', self.current_token())

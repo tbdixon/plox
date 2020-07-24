@@ -1,33 +1,34 @@
 from multimethod.multimethod import multimethod
 from scanner.tokentypes import TokenType
 from error_handling.loxerror import LoxRuntimeError
+from environment.environment import Environment
 from ast.expr import *
 from ast.validations import is_numeric, is_string
 
 
 @multimethod
-def execute_expr(literal: Literal):
+def execute_expr(literal: Literal, _: Environment = None):
     return literal.value
 
 
 @multimethod
-def execute_expr(unary: Unary):
-    right = execute_expr(unary.right)
+def execute_expr(unary: Unary, env: Environment):
+    right = execute_expr(unary.right, env)
     operator = unary.operator.lexeme
     if operator == "!":
         return not right
     elif operator == "-":
         if not is_numeric(right):
-            raise LoxRuntimeError("Invalid operand for unary -", unary)
+            raise LoxRuntimeError("Invalid operand for unary -")
         else:
             return -right
-    raise LoxRuntimeError("Invalid operator found for unary", unary)
+    raise LoxRuntimeError("Invalid operator found for unary")
 
 
 @multimethod
-def execute_expr(binary: Binary):
-    left = execute_expr(binary.left)
-    right = execute_expr(binary.right)
+def execute_expr(binary: Binary, env: Environment):
+    left = execute_expr(binary.left, env)
+    right = execute_expr(binary.right, env)
 
     validation_logic = {
         TokenType.SLASH: lambda: is_numeric(left) and is_numeric(right),
@@ -61,8 +62,13 @@ def execute_expr(binary: Binary):
 
 
 @multimethod
-def execute_expr(grouping: Grouping):
-    return execute_expr(grouping.expression)
+def execute_expr(grouping: Grouping, env: Environment):
+    return execute_expr(grouping.expression, env)
+
+@multimethod
+def execute_expr(variable: Variable, env: Environment):
+    return env.get(variable.var)
+
 
 @multimethod
 def execute_expr(error_expr: InvalidExpr):

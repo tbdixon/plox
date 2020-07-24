@@ -34,3 +34,8 @@ class Binary(Expr):
 class Grouping(Expr):
     def __init__(self, expression: Expr):
         self.expression = expression
+
+
+class Variable(Expr):
+    def __init__(self, var: Token):
+        self.var = var
