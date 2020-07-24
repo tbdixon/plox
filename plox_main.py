@@ -9,6 +9,7 @@ from error_handling.loxerror import LoxRuntimeError
 
 
 def run_prompt() -> None:
+    interpreter = Interpreter()
     while True:
         try:
             line = input("> ")
@@ -22,16 +23,16 @@ def run_prompt() -> None:
         if len(line):
             # if line[-1] != ";":
             #    line.append(";")
-            run(line)
+            run(line, interpreter)
 
 
 def run_file(filename: str) -> None:
     script = open(filename, 'r').read()
     print(f'executing {filename}')
-    run(script)
+    run(script, Interpreter())
 
 
-def run(source: str) -> None:
+def run(source: str, interpreter: Interpreter) -> None:
     scanner = Scanner(source)
     scanner.scan_tokens()
 
@@ -39,11 +40,11 @@ def run(source: str) -> None:
     statements = parser.parse()
 
     if parser.had_error:
+        # Run through the parse errors
         print(f'Error parsing...')
 
-    interpreter = Interpreter(statements)
     try:
-        interpreter.interpret()
+        interpreter.interpret(statements)
     except LoxRuntimeError as err:
         print(f'{err.msg}: {err.expr}')
 
