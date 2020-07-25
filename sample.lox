@@ -1,10 +1,19 @@
-var outer_var = 10;
+var a = "global a";
+var b = "global b";
+var c = "global c";
 {
-	var inner_var = 5;
-	print inner_var;
-	print outer_var;
-	outer_var = 15;
-	print outer_var;
+	  var a = "outer a";
+	    var b = "outer b";
+		  {
+			      var a = "inner a";
+				      print a;
+					      print b;
+						      print c;
+							    }
+								  print a;
+								    print b;
+									  print c;
 }
-print outer_var;
-
+print a;
+print b;
+print c;
