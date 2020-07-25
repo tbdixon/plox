@@ -2,6 +2,7 @@ from typing import List
 
 from .tokentypes import TokenType
 
+
 class Token:
     def __init__(self, tokentype: TokenType, lexeme: str, literal, line: int) -> None:
         self.tokentype = tokentype

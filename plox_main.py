@@ -19,8 +19,9 @@ def run_prompt() -> None:
                 print("\n")
                 continue
         if len(line):
-            # if line[-1] != ";":
-            #    line.append(";")
+            # I am tired of missing ; errors in REPL
+            if line[-1] != ";":
+                line += ";"
             run(line, interpreter)
 
 
