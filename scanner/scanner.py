@@ -3,6 +3,10 @@ from .tokentypes import TokenType
 from error_handling.error_printer import scanner_error_print
 
 
+def is_alpha(char: str):
+    return char.isalpha() or char.isnumeric() or char == "_"
+
+
 class Scanner:
     # TODO: this should probably be paired up as a map with the type enum
     keywords = {
@@ -68,7 +72,6 @@ class Scanner:
         for t in self.double_tokens:
             self.scan_funcs[t] = self.scan_double_token
 
-
     def is_at_end(self):
         return self.current >= len(self.source)
 
@@ -107,7 +110,7 @@ class Scanner:
     def parse_word(self, initial_char: str) -> None:
         word = initial_char
         while not self.is_at_end():
-            if self.preview_next() == "\n" or self.preview_next() == " " or not self.preview_next().isalpha():
+            if self.preview_next() == "\n" or self.preview_next() == " " or not is_alpha(self.preview_next()):
                 break
             else:
                 word = word + self.advance()
@@ -173,7 +176,7 @@ class Scanner:
             self.parse_number(current_char)
             return
         # Identifiers and Keywords
-        elif current_char.isalpha():
+        elif is_alpha(current_char):
             self.parse_word(current_char)
             return
         else:

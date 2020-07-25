@@ -1,6 +1,6 @@
 from typing import List
 
-from ast.expr import Literal, Binary, Grouping, Unary, Variable
+from ast.expr import Literal, Binary, Grouping, Unary, Variable, Assign
 from ast.stmt import *
 from error_handling.loxerror import LoxParseError
 from scanner.token import Token
@@ -35,6 +35,9 @@ class Parser:
             raise LoxParseError(error, self.previous_token())
         self.advance()
 
+    def check(self, token_types: List[TokenType]):
+        return self.current_token().is_token_type(token_types)
+
     def advance_if_match(self, token_types: List[TokenType]):
         if self.current_token().is_token_type(token_types):
             self.advance()
@@ -42,7 +45,8 @@ class Parser:
         return False
 
     def synchronize(self):
-        pass
+        while not self.is_at_end() and not self.check([TokenType.SEMICOLON]):
+            self.advance()
 
     def parse(self) -> List[Stmt]:
         while not self.is_at_end():
@@ -71,8 +75,17 @@ class Parser:
     def statement(self) -> Stmt:
         if self.advance_if_match([TokenType.PRINT]):
             return self.print_statement()
+        elif self.advance_if_match([TokenType.LEFT_BRACE]):
+            return BlockStmt(self.block_statement())
         else:
             return self.expr_statement()
+
+    def block_statement(self) -> List[Stmt]:
+        statements = []
+        while not self.is_at_end() and not self.check([TokenType.RIGHT_BRACE]):
+            statements.append(self.declaration())
+        self.check_consume_next(TokenType.RIGHT_BRACE, "Missing closing brace")
+        return statements
 
     def expr_statement(self) -> Stmt:
         expr = self.expression()
@@ -85,7 +98,17 @@ class Parser:
         return PrintStmt(expr)
 
     def expression(self) -> Expr:
-        return self.equality()
+        return self.assignment()
+
+    def assignment(self) -> Expr:
+        val = self.equality()
+        if self.advance_if_match([TokenType.EQUAL]):
+            r_value = self.assignment()
+            if type(val) == Variable:
+                return Assign(val.var, r_value)
+            else:
+                raise LoxParseError(f'Invalid assignment target {self.previous_token().lexeme}')
+        return val
 
     def equality(self) -> Expr:
         expr = self.comparison()

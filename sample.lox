@@ -1,7 +1,10 @@
-var a = 10;
-var b = 5;
-var c = a + b;
-print(c);
-var bool = true;
-print(!bool);
+var outer_var = 10;
+{
+	var inner_var = 5;
+	print inner_var;
+	print outer_var;
+	outer_var = 15;
+	print outer_var;
+}
+print outer_var;
 

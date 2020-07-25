@@ -57,7 +57,7 @@ def execute_expr(binary: Binary, env: Environment):
     }
 
     if binary.operator.tokentype not in validation_logic or not validation_logic[binary.operator.tokentype]():
-        raise LoxRuntimeError("Invalid binary operands, must be two numbers or two strings", binary)
+        raise LoxRuntimeError("Invalid binary operands, must be two numbers or two strings")
     return execution_logic[binary.operator.tokentype]()
 
 
@@ -65,9 +65,15 @@ def execute_expr(binary: Binary, env: Environment):
 def execute_expr(grouping: Grouping, env: Environment):
     return execute_expr(grouping.expression, env)
 
+
 @multimethod
 def execute_expr(variable: Variable, env: Environment):
     return env.get(variable.var)
+
+
+@multimethod
+def execute_expr(assignment: Assign, env: Environment):
+    return env.assign(assignment.name, execute_expr(assignment.val))
 
 
 @multimethod
