@@ -44,10 +44,12 @@ class IfStmt(Stmt):
         self.then_branch = then_branch
         self.else_branch = else_branch
 
+
 class WhileStmt(Stmt):
     def __init__(self, condition: Expr, body: Stmt):
         self.condition = condition
         self.body = body
+
 
 class InvalidStmt(Stmt):
     pass
