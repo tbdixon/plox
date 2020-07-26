@@ -79,7 +79,8 @@ class Parser:
             TokenType.PRINT: self.print_statement,
             TokenType.LEFT_BRACE: self.block_statement,
             TokenType.IF: self.if_statement,
-            TokenType.WHILE: self.while_statement
+            TokenType.WHILE: self.while_statement,
+            TokenType.FOR: self.for_statement
         }
         token_type = self.current_token().tokentype
         fn = match.get(token_type, None)
@@ -89,13 +90,38 @@ class Parser:
         else:
             return self.expr_statement()
 
-    def while_statement(self):
-        self.check_consume_next(TokenType.LEFT_PAREN, "Missing left parentheses")
+    def for_statement(self) -> Stmt:
+        self.check_consume_next(TokenType.LEFT_PAREN, "Missing '('")
+        initializer = None
+        if not self.advance_if_match([TokenType.SEMICOLON]):
+            initializer = self.declaration()
+
+        if self.advance_if_match([TokenType.SEMICOLON]):
+            condition = Literal(True)
+        else:
+            condition = self.expression()
+            self.check_consume_next(TokenType.SEMICOLON, "Missing semicolon after loop condition")
+
+        increment = None
+        if not self.advance_if_match([TokenType.RIGHT_PAREN]):
+            increment = ExprStmt(self.expression())
+            self.check_consume_next(TokenType.RIGHT_PAREN, "Missing ')' after for clause ")
+
+        body = self.statement()
+        if increment:
+            body = BlockStmt([body, increment])
+
+        loop = WhileStmt(condition, body)
+        if initializer:
+            loop = BlockStmt([initializer, loop])
+        return loop
+
+    def while_statement(self) -> Stmt:
+        self.check_consume_next(TokenType.LEFT_PAREN, "Missing '('")
         condition = self.expression()
-        self.check_consume_next(TokenType.RIGHT_PAREN, "Missing left parentheses")
+        self.check_consume_next(TokenType.RIGHT_PAREN, "Missing ')'")
         body = self.statement()
         return WhileStmt(condition, body)
-
 
     def block_statement(self) -> BlockStmt:
         statements = []
