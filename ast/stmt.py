@@ -38,5 +38,12 @@ class BlockStmt(Stmt):
         self.env = Environment()
 
 
+class IfStmt(Stmt):
+    def __init__(self, condition: Expr, then_branch: Stmt, else_branch: Stmt):
+        self.condition = condition
+        self.then_branch = then_branch
+        self.else_branch = else_branch
+
+
 class InvalidStmt(Stmt):
     pass
