@@ -75,29 +75,45 @@ class Parser:
         return VarStmt(var_name, expr)
 
     def statement(self) -> Stmt:
-        if self.advance_if_match([TokenType.PRINT]):
-            return self.print_statement()
-        elif self.advance_if_match([TokenType.LEFT_BRACE]):
-            return BlockStmt(self.block_statement())
+        match = {
+            TokenType.PRINT: self.print_statement,
+            TokenType.LEFT_BRACE: self.block_statement,
+            TokenType.IF: self.if_statement
+        }
+        token_type = self.current_token().tokentype
+        fn = match.get(token_type, None)
+        if fn:
+            self.advance()
+            return fn()
         else:
             return self.expr_statement()
 
-    def block_statement(self) -> List[Stmt]:
+    def block_statement(self) -> BlockStmt:
         statements = []
         while not self.is_at_end() and not self.check([TokenType.RIGHT_BRACE]):
             statements.append(self.declaration())
         self.check_consume_next(TokenType.RIGHT_BRACE, "Missing closing brace")
-        return statements
+        return BlockStmt(statements)
 
-    def expr_statement(self) -> Stmt:
+    def expr_statement(self) -> ExprStmt:
         expr = self.expression()
         self.check_consume_next(TokenType.SEMICOLON, "Expect ';' after value.")
         return ExprStmt(expr)
 
-    def print_statement(self) -> Stmt:
+    def print_statement(self) -> PrintStmt:
         expr = self.expression()
         self.check_consume_next(TokenType.SEMICOLON, "Expect ';' after value.")
         return PrintStmt(expr)
+
+    def if_statement(self) -> IfStmt:
+        self.check_consume_next(TokenType.LEFT_PAREN, "Missing left parenthesis")
+        condition = self.expression()
+        self.check_consume_next(TokenType.RIGHT_PAREN, "Missing right parenthesis")
+        then_branch = self.statement()
+        if_stmt = IfStmt(condition, then_branch)
+        if self.advance_if_match([TokenType.ELSE]):
+            if_stmt.else_branch = self.statement()
+        return if_stmt
 
     def expression(self) -> Expr:
         return self.assignment()
@@ -152,21 +168,27 @@ class Parser:
 
         return expr
 
+    def grouping_helper(self):
+        grouping_expr = Grouping(self.expression())
+        if not self.advance_if_match([TokenType.RIGHT_PAREN]):
+            raise LoxParseError(f'Missing right paren', self.current_token())
+        else:
+            return grouping_expr
+
     def primary(self) -> Expr:
-        if self.advance_if_match([TokenType.FALSE]):
-            return Literal(False)
-        elif self.advance_if_match([TokenType.TRUE]):
-            return Literal(True)
-        elif self.advance_if_match([TokenType.NIL]):
-            return Literal(None)
-        elif self.advance_if_match([TokenType.STRING, TokenType.NUMBER]):
-            return Literal(self.previous_token().literal)
-        elif self.advance_if_match([TokenType.IDENTIFIER]):
-            return Variable(self.previous_token())
-        elif self.advance_if_match([TokenType.LEFT_PAREN]):
-            grouping_expr = Grouping(self.expression())
-            if not self.advance_if_match([TokenType.RIGHT_PAREN]):
-                raise LoxParseError(f'Missing right paren', self.current_token())
-            else:
-                return grouping_expr
-        raise LoxParseError(f'Invalid token found', self.current_token())
+        match = {
+            TokenType.FALSE: lambda: Literal(False),
+            TokenType.TRUE: lambda: Literal(True),
+            TokenType.NIL: lambda: Literal(None),
+            TokenType.STRING: lambda: Literal(self.previous_token().literal),
+            TokenType.NUMBER: lambda: Literal(self.previous_token().literal),
+            TokenType.IDENTIFIER: lambda: Variable(self.previous_token()),
+            TokenType.LEFT_PAREN: self.grouping_helper
+        }
+        token_type = self.current_token().tokentype
+        fn = match.get(token_type, None)
+        self.advance()
+        if fn:
+            return fn()
+        else:
+            raise LoxParseError(f'Invalid token found', self.current_token())
