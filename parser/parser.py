@@ -78,7 +78,8 @@ class Parser:
         match = {
             TokenType.PRINT: self.print_statement,
             TokenType.LEFT_BRACE: self.block_statement,
-            TokenType.IF: self.if_statement
+            TokenType.IF: self.if_statement,
+            TokenType.WHILE: self.while_statement
         }
         token_type = self.current_token().tokentype
         fn = match.get(token_type, None)
@@ -87,6 +88,14 @@ class Parser:
             return fn()
         else:
             return self.expr_statement()
+
+    def while_statement(self):
+        self.check_consume_next(TokenType.LEFT_PAREN, "Missing left parentheses")
+        condition = self.expression()
+        self.check_consume_next(TokenType.RIGHT_PAREN, "Missing left parentheses")
+        body = self.statement()
+        return WhileStmt(condition, body)
+
 
     def block_statement(self) -> BlockStmt:
         statements = []
@@ -106,9 +115,9 @@ class Parser:
         return PrintStmt(expr)
 
     def if_statement(self) -> IfStmt:
-        self.check_consume_next(TokenType.LEFT_PAREN, "Missing left parenthesis")
+        self.check_consume_next(TokenType.LEFT_PAREN, "Missing left parentheses")
         condition = self.expression()
-        self.check_consume_next(TokenType.RIGHT_PAREN, "Missing right parenthesis")
+        self.check_consume_next(TokenType.RIGHT_PAREN, "Missing right parentheses")
         then_branch = self.statement()
         if_stmt = IfStmt(condition, then_branch)
         if self.advance_if_match([TokenType.ELSE]):
