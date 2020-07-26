@@ -39,7 +39,7 @@ class BlockStmt(Stmt):
 
 
 class IfStmt(Stmt):
-    def __init__(self, condition: Expr, then_branch: Stmt, else_branch: Stmt):
+    def __init__(self, condition: Expr, then_branch: Stmt, else_branch: Stmt = None):
         self.condition = condition
         self.then_branch = then_branch
         self.else_branch = else_branch

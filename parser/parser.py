@@ -78,28 +78,42 @@ class Parser:
         match = {
             TokenType.PRINT: self.print_statement,
             TokenType.LEFT_BRACE: self.block_statement,
+            TokenType.IF: self.if_statement
         }
         token_type = self.current_token().tokentype
-        fn = match.get(token_type, self.expr_statement)
-        self.advance()
-        return fn()
+        fn = match.get(token_type, None)
+        if fn:
+            self.advance()
+            return fn()
+        else:
+            return self.expr_statement()
 
-    def block_statement(self) -> Stmt:
+    def block_statement(self) -> BlockStmt:
         statements = []
         while not self.is_at_end() and not self.check([TokenType.RIGHT_BRACE]):
             statements.append(self.declaration())
         self.check_consume_next(TokenType.RIGHT_BRACE, "Missing closing brace")
         return BlockStmt(statements)
 
-    def expr_statement(self) -> Stmt:
+    def expr_statement(self) -> ExprStmt:
         expr = self.expression()
         self.check_consume_next(TokenType.SEMICOLON, "Expect ';' after value.")
         return ExprStmt(expr)
 
-    def print_statement(self) -> Stmt:
+    def print_statement(self) -> PrintStmt:
         expr = self.expression()
         self.check_consume_next(TokenType.SEMICOLON, "Expect ';' after value.")
         return PrintStmt(expr)
+
+    def if_statement(self) -> IfStmt:
+        self.check_consume_next(TokenType.LEFT_PAREN, "Missing left parenthesis")
+        condition = self.expression()
+        self.check_consume_next(TokenType.RIGHT_PAREN, "Missing right parenthesis")
+        then_branch = self.statement()
+        if_stmt = IfStmt(condition, then_branch)
+        if self.advance_if_match([TokenType.ELSE]):
+            if_stmt.else_branch = self.statement()
+        return if_stmt
 
     def expression(self) -> Expr:
         return self.assignment()

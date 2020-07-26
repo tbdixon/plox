@@ -33,3 +33,11 @@ def execute_stmt(stmt: BlockStmt, env: Environment) -> None:
     stmt.env.outer_env = env
     for statement in stmt.statements:
         execute_stmt(statement, stmt.env)
+
+@multimethod
+def execute_stmt(stmt: IfStmt, env: Environment) -> None:
+    condition = execute_expr(stmt.condition, env)
+    if condition:
+        return execute_stmt(stmt.then_branch, env)
+    elif stmt.else_branch:
+        return execute_stmt(stmt.else_branch, env)
