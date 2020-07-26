@@ -36,3 +36,7 @@ class BlockStmt(Stmt):
     def __init__(self, statements: List[Stmt]):
         self.statements = statements
         self.env = Environment()
+
+
+class InvalidStmt(Stmt):
+    pass

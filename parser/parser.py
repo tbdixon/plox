@@ -47,6 +47,7 @@ class Parser:
     def synchronize(self):
         while not self.is_at_end() and not self.check([TokenType.SEMICOLON]):
             self.advance()
+        self.advance()
 
     def parse(self) -> List[Stmt]:
         while not self.is_at_end():
@@ -62,6 +63,7 @@ class Parser:
             self.synchronize()
             self.had_error = True
             self.errors.append(err)
+            return InvalidStmt
 
     def var_declaration(self) -> Stmt:
         var_name = self.current_token()

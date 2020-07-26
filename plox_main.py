@@ -1,4 +1,5 @@
 import sys
+import os
 from scanner.scanner import Scanner
 from parser.parser import Parser
 from interpreter.interpreter import Interpreter
@@ -26,7 +27,9 @@ def run_prompt() -> None:
 
 
 def run_file(filename: str) -> None:
-    script = open(filename, 'r').read()
+    # Make running debugger simpler
+    file_path = os.path.join(os.path.dirname(__file__), filename)
+    script = open(file_path, 'r').read()
     print(f'executing {filename}')
     run(script, Interpreter())
 
