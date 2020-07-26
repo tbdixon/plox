@@ -8,11 +8,6 @@ class Expr(ABC):
         return ' '.join([f'{attr}: [{val}]' for attr, val in vars(self).items()])
 
 
-class InvalidExpr(Expr):
-    def __init__(self, error: LoxError):
-        self.error = error
-
-
 class Literal(Expr):
     def __init__(self, value):
         self.value = value

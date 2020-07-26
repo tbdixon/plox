@@ -75,7 +75,3 @@ def execute_expr(variable: Variable, env: Environment):
 def execute_expr(assignment: Assign, env: Environment):
     return env.assign(assignment.name, execute_expr(assignment.val))
 
-
-@multimethod
-def execute_expr(error_expr: InvalidExpr):
-    print(f'{error_expr.error.msg}: {error_expr.error.val}')
