@@ -1,6 +1,6 @@
 from typing import List
 
-from ast.expr import Literal, Binary, Grouping, Unary, Variable, Assign
+from ast.expr import Literal, Binary, Grouping, Unary, Variable, Assign, Logical
 from ast.stmt import *
 from error_handling.loxerror import LoxParseError
 from scanner.token import Token
@@ -78,7 +78,8 @@ class Parser:
         match = {
             TokenType.PRINT: self.print_statement,
             TokenType.LEFT_BRACE: self.block_statement,
-            TokenType.IF: self.if_statement
+            TokenType.IF: self.if_statement,
+            TokenType.WHILE: self.while_statement
         }
         token_type = self.current_token().tokentype
         fn = match.get(token_type, None)
@@ -87,6 +88,14 @@ class Parser:
             return fn()
         else:
             return self.expr_statement()
+
+    def while_statement(self):
+        self.check_consume_next(TokenType.LEFT_PAREN, "Missing left parentheses")
+        condition = self.expression()
+        self.check_consume_next(TokenType.RIGHT_PAREN, "Missing left parentheses")
+        body = self.statement()
+        return WhileStmt(condition, body)
+
 
     def block_statement(self) -> BlockStmt:
         statements = []
@@ -106,9 +115,9 @@ class Parser:
         return PrintStmt(expr)
 
     def if_statement(self) -> IfStmt:
-        self.check_consume_next(TokenType.LEFT_PAREN, "Missing left parenthesis")
+        self.check_consume_next(TokenType.LEFT_PAREN, "Missing left parentheses")
         condition = self.expression()
-        self.check_consume_next(TokenType.RIGHT_PAREN, "Missing right parenthesis")
+        self.check_consume_next(TokenType.RIGHT_PAREN, "Missing right parentheses")
         then_branch = self.statement()
         if_stmt = IfStmt(condition, then_branch)
         if self.advance_if_match([TokenType.ELSE]):
@@ -119,7 +128,7 @@ class Parser:
         return self.assignment()
 
     def assignment(self) -> Expr:
-        val = self.equality()
+        val = self.logical_or()
         if self.advance_if_match([TokenType.EQUAL]):
             r_value = self.assignment()
             if type(val) == Variable:
@@ -127,6 +136,22 @@ class Parser:
             else:
                 raise LoxParseError(f'Invalid assignment target {self.previous_token().lexeme}')
         return val
+
+    def logical_or(self) -> Expr:
+        expr = self.logical_and()
+        while self.advance_if_match([TokenType.OR]):
+            operator = self.previous_token()
+            right = self.logical_and()
+            expr = Logical(expr, operator, right)
+        return expr
+
+    def logical_and(self) -> Expr:
+        expr = self.equality()
+        while self.advance_if_match([TokenType.AND]):
+            operator = self.previous_token()
+            right = self.equality()
+            expr = Logical(expr, operator, right)
+        return expr
 
     def equality(self) -> Expr:
         expr = self.comparison()
