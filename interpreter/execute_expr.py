@@ -75,3 +75,14 @@ def execute_expr(variable: Variable, env: Environment):
 def execute_expr(assignment: Assign, env: Environment):
     return env.assign(assignment.name, execute_expr(assignment.val))
 
+@multimethod
+def execute_expr(logical: Logical, env: Environment):
+    left = execute_expr(logical.left, env)
+    if logical.operator.is_token_type([TokenType.OR]):
+        if left:
+            return left
+    elif not left:
+        return left
+
+    return execute_expr(logical.right, env)
+

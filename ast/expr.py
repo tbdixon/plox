@@ -40,3 +40,10 @@ class Assign(Expr):
     def __init__(self, name: Token, val):
         self.name = name
         self.val = val
+
+
+class Logical(Expr):
+    def __init__(self, left: Expr, operator: Token, right: Expr):
+        self.left = left
+        self.operator = operator
+        self.right = right
