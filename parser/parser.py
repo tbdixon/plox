@@ -1,6 +1,4 @@
-from typing import List
-
-from ast.expr import Literal, Binary, Grouping, Unary, Variable, Assign, Logical
+from ast.expr import Literal, Binary, Grouping, Unary, Variable, Assign, Logical, Call
 from ast.stmt import *
 from error_handling.loxerror import LoxParseError
 from scanner.token import Token
@@ -14,6 +12,12 @@ class Parser:
         self.statements = []
         self.had_error = False
         self.errors = []
+
+    #TODO: Better error handling, throw vs report in parsing
+    def error(self, token: Token, err: str):
+        self.had_error = True
+        print(token)
+        print(err)
 
     def is_at_end(self):
         return self.current_token().is_token_type([TokenType.EOF])
@@ -181,50 +185,48 @@ class Parser:
 
     def equality(self) -> Expr:
         expr = self.comparison()
-
         while self.advance_if_match([TokenType.EQUAL_EQUAL, TokenType.BANG_EQUAL]):
             expr = Binary(expr, self.previous_token(), self.comparison())
-
         return expr
 
     def comparison(self) -> Expr:
         expr = self.addition()
-
         while self.advance_if_match([TokenType.LESS, TokenType.LESS_EQUAL, TokenType.GREATER, TokenType.GREATER_EQUAL]):
             expr = Binary(expr, self.previous_token(), self.comparison())
-
         return expr
 
     def addition(self) -> Expr:
         expr = self.multiplication()
-
         while self.advance_if_match([TokenType.PLUS, TokenType.MINUS]):
             expr = Binary(expr, self.previous_token(), self.comparison())
-
         return expr
 
     def multiplication(self) -> Expr:
         expr = self.unary()
-
         while self.advance_if_match([TokenType.STAR, TokenType.SLASH]):
             expr = Binary(expr, self.previous_token(), self.comparison())
-
         return expr
 
     def unary(self) -> Expr:
         if self.advance_if_match([TokenType.BANG, TokenType.MINUS]):
-            expr = Unary(self.previous_token(), self.unary())
-        else:
-            expr = self.primary()
+            return Unary(self.previous_token(), self.unary())
+        return self.call()
 
-        return expr
+    def call(self) -> Expr:
+        callee = self.primary()
+        while self.advance_if_match([TokenType.LEFT_PAREN]):
+            callee = self.build_call_expr(callee)
+        return callee
 
-    def grouping_helper(self):
-        grouping_expr = Grouping(self.expression())
-        if not self.advance_if_match([TokenType.RIGHT_PAREN]):
-            raise LoxParseError(f'Missing right paren', self.current_token())
-        else:
-            return grouping_expr
+    def build_call_expr(self, callee: Expr) -> Call:
+        args = []
+        while not self.check([TokenType.RIGHT_PAREN]):
+            args.append(self.expression())
+            self.check_consume_next(TokenType.COMMA, "Missing ',' between arguments")
+            if len(args) >= 255:
+                self.error(self.previous_token(), "Cannot have more than 255 arguments")
+        self.check_consume_next(TokenType.RIGHT_PAREN, "Missing ')' after arguments")
+        return Call(callee, self.previous_token(), args)
 
     def primary(self) -> Expr:
         match = {
@@ -243,3 +245,10 @@ class Parser:
             return fn()
         else:
             raise LoxParseError(f'Invalid token found', self.current_token())
+
+    def grouping_helper(self):
+        grouping_expr = Grouping(self.expression())
+        if not self.advance_if_match([TokenType.RIGHT_PAREN]):
+            raise LoxParseError(f'Missing right paren', self.current_token())
+        else:
+            return grouping_expr
