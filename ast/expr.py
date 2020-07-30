@@ -1,4 +1,6 @@
 from abc import ABC
+from typing import List
+
 from scanner.token import Token
 from error_handling.loxerror import LoxError
 
@@ -47,3 +49,10 @@ class Logical(Expr):
         self.left = left
         self.operator = operator
         self.right = right
+
+
+class Call(Expr):
+    def __init__(self, callee: Expr, paren: Token, arguments: List[Expr]):
+        self.callee = callee
+        self.parent = paren
+        self.arguments = arguments
