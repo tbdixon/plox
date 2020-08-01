@@ -2,8 +2,6 @@ from typing import List
 
 import time
 
-from interpreter.execute_stmt import execute_stmt
-
 from environment.environment import Environment
 
 from ast.stmt import Stmt
@@ -19,7 +17,7 @@ class Clock(LoxCallable):
     def arity(self) -> int:
         return 0
 
-    def call(self, *args):
+    def call(self, env, *args):
         return time.time()
 
     def __str__(self):
@@ -32,5 +30,6 @@ class Interpreter:
         self.globals.define('clock', Clock())
 
     def interpret(self, statements: List[Stmt]) -> None:
+        from interpreter.execute_stmt import execute_stmt
         for statement in statements:
             execute_stmt(statement, self.environment)

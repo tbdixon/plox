@@ -51,5 +51,12 @@ class WhileStmt(Stmt):
         self.body = body
 
 
+class FunctionStmt(Stmt):
+    def __init__(self, name: Token, params: List[Token], body: BlockStmt):
+        self.name = name
+        self.params = params
+        self.body = body
+
+
 class InvalidStmt(Stmt):
     pass

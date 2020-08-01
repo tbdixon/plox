@@ -1,6 +1,6 @@
 from interpreter.execute_expr import execute_expr
 from multimethod.multimethod import multimethod
-from environment.environment import Environment
+from interpreter.loxfunction import LoxFunction
 from ast.stmt import *
 
 
@@ -47,3 +47,8 @@ def execute_stmt(stmt: IfStmt, env: Environment):
 def execute_stmt(stmt: WhileStmt, env: Environment) -> None:
     while execute_expr(stmt.condition, env):
         execute_stmt(stmt.body, env)
+
+
+@multimethod
+def execute_stmt(stmt: FunctionStmt, env: Environment) -> None:
+    env.define(stmt.name.lexeme, LoxFunction(stmt))

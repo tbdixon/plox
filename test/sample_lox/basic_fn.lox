@@ -1,0 +1,4 @@
+fun my_print(x, y) {
+	print("hello " + x + "and " + y);
+}
+my_print("world", "blake");
