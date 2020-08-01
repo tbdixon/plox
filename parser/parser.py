@@ -20,7 +20,7 @@ class Parser:
         print(err)
 
     def is_at_end(self):
-        return self.current_token().is_token_type([TokenType.EOF])
+        return self.current_token_idx >= len(self.tokens) or self.current_token().is_token_type([TokenType.EOF])
 
     def current_token(self) -> Token:
         return self.tokens[self.current_token_idx]
@@ -62,6 +62,8 @@ class Parser:
         try:
             if self.advance_if_match([TokenType.VAR]):
                 return self.var_declaration()
+            elif self.advance_if_match([TokenType.FUN]):
+                return self.fun_declaration()
             return self.statement()
         except LoxParseError as err:
             self.synchronize()
@@ -77,6 +79,23 @@ class Parser:
             expr = self.expression()
         self.check_consume_next(TokenType.SEMICOLON, "Expect ';' after variable declaration")
         return VarStmt(var_name, expr)
+
+    def fun_declaration(self) -> Stmt:
+        fun_name = self.current_token()
+        self.advance()
+        self.check_consume_next(TokenType.LEFT_PAREN, "Expect '(' after fun definition")
+        params = list()
+        if not self.check([TokenType.RIGHT_PAREN]):
+            self.check_consume_next(TokenType.IDENTIFIER, "Invalid parameter type")
+            params.append(self.previous_token())
+            while self.advance_if_match([TokenType.COMMA]):
+                self.check_consume_next(TokenType.IDENTIFIER, "Invalid parameter type")
+                params.append(self.previous_token())
+                if len(params) >= 255:
+                    self.error(self.previous_token(), "Cannot have more than 255 parameters")
+        self.check_consume_next(TokenType.RIGHT_PAREN, "Missing ')' after parameters")
+        self.check_consume_next(TokenType.LEFT_BRACE, "Missing '{' at start of function body")
+        return FunctionStmt(fun_name, params, self.block_statement())
 
     def statement(self) -> Stmt:
         match = {
@@ -220,11 +239,12 @@ class Parser:
 
     def build_call_expr(self, callee: Expr) -> Call:
         args = []
-        while not self.check([TokenType.RIGHT_PAREN]):
+        if not self.check([TokenType.RIGHT_PAREN]):
             args.append(self.expression())
-            self.check_consume_next(TokenType.COMMA, "Missing ',' between arguments")
-            if len(args) >= 255:
-                self.error(self.previous_token(), "Cannot have more than 255 arguments")
+            while self.advance_if_match([TokenType.COMMA]):
+                args.append(self.expression())
+                if len(args) >= 255:
+                    self.error(self.previous_token(), "Cannot have more than 255 arguments")
         self.check_consume_next(TokenType.RIGHT_PAREN, "Missing ')' after arguments")
         return Call(callee, self.previous_token(), args)
 
