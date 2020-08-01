@@ -3,7 +3,8 @@ from scanner.tokentypes import TokenType
 from error_handling.loxerror import LoxRuntimeError
 from environment.environment import Environment
 from ast.expr import *
-from ast.validations import is_numeric, is_string
+from interpreter.validations import is_numeric, is_string
+from ast.lox_callable import LoxCallable
 
 
 @multimethod
@@ -86,4 +87,18 @@ def execute_expr(logical: Logical, env: Environment):
         return left
 
     return execute_expr(logical.right, env)
+
+
+@multimethod
+def execute_expr(call: Call, env: Environment):
+    callee = execute_expr(call.callee, env)
+    if not issubclass(type(callee), LoxCallable):
+        raise LoxRuntimeError("Invalid callee")
+    if len(call.arguments) != callee.arity():
+        raise LoxRuntimeError("Invalid number of arguments", call.paren)
+    args = map(execute_expr, call.arguments)
+    return callee.call(*list(args))
+
+
+
 

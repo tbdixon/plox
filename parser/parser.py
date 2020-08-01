@@ -13,7 +13,7 @@ class Parser:
         self.had_error = False
         self.errors = []
 
-    #TODO: Better error handling, throw vs report in parsing
+    # TODO: Better error handling, throw vs report in parsing
     def error(self, token: Token, err: str):
         self.had_error = True
         print(token)
@@ -164,7 +164,7 @@ class Parser:
             if type(val) == Variable:
                 return Assign(val.var, r_value)
             else:
-                raise LoxParseError(f'Invalid assignment target {self.previous_token().lexeme}')
+                raise LoxParseError(f'Invalid assignment target {self.previous_token().lexeme}', self.previous_token())
         return val
 
     def logical_or(self) -> Expr:
