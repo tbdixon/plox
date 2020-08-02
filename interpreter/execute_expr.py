@@ -96,8 +96,10 @@ def execute_expr(call: Call, env: Environment):
         raise LoxRuntimeError("Invalid callee")
     if len(call.arguments) != callee.arity():
         raise LoxRuntimeError("Invalid number of arguments", call.paren)
-    args = map(execute_expr, call.arguments)
-    return callee.call(env, *list(args))
+    args = []
+    for arg in call.arguments:
+        args.append(execute_expr(arg, env))
+    return callee.call(*list(args))
 
 
 
