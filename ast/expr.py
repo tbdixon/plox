@@ -1,5 +1,8 @@
 from abc import ABC
 from typing import List
+from typing import TYPE_CHECKING
+if TYPE_CHECKING:
+    from ast.stmt import BlockStmt
 
 from scanner.token import Token
 
@@ -55,3 +58,9 @@ class Call(Expr):
         self.callee = callee
         self.paren = paren
         self.arguments = arguments
+
+
+class AnonymousFun(Expr):
+    def __init__(self, params: List[Token], body: 'BlockStmt'):
+        self.params = params
+        self.body = body

@@ -1,10 +1,13 @@
+from typing import Union
+
 from ast.stmt import FunctionStmt
+from ast.expr import AnonymousFun
 from environment.environment import Environment, LoxReturn
 from ast.lox_callable import LoxCallable
 
 
 class LoxFunction(LoxCallable):
-    def __init__(self, declaration: FunctionStmt, closure: Environment):
+    def __init__(self, declaration: Union[FunctionStmt, AnonymousFun], closure: Environment):
         self.declaration = declaration
         self.closure = closure
         self._arity = len(declaration.params)

@@ -4,8 +4,6 @@ from error_handling.loxerror import LoxRuntimeError
 from environment.environment import Environment
 from ast.expr import *
 from interpreter.validations import is_numeric, is_string
-from ast.lox_callable import LoxCallable
-
 
 @multimethod
 def execute_expr(literal: Literal, _: Environment = None):
@@ -91,6 +89,7 @@ def execute_expr(logical: Logical, env: Environment):
 
 @multimethod
 def execute_expr(call: Call, env: Environment):
+    from ast.lox_callable import LoxCallable
     callee = execute_expr(call.callee, env)
     if not issubclass(type(callee), LoxCallable):
         raise LoxRuntimeError("Invalid callee")
@@ -100,6 +99,13 @@ def execute_expr(call: Call, env: Environment):
     for arg in call.arguments:
         args.append(execute_expr(arg, env))
     return callee.call(*list(args))
+
+
+@multimethod
+def execute_expr(fun: AnonymousFun, env: Environment):
+    from interpreter.loxfunction import LoxFunction
+    return LoxFunction(fun, env)
+
 
 
 

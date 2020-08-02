@@ -1,5 +1,5 @@
 from abc import ABC
-from typing import List
+from typing import List, Union
 
 from ast.expr import Expr
 from scanner.token import Token
