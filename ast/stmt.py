@@ -58,5 +58,10 @@ class FunctionStmt(Stmt):
         self.body = body
 
 
+class ReturnStmt(Stmt):
+    def __init__(self, value: Expr):
+        self.value = value
+
+
 class InvalidStmt(Stmt):
     pass

@@ -2,6 +2,11 @@ from scanner.token import Token
 from error_handling.loxerror import LoxRuntimeError
 
 
+class LoxReturn(Exception):
+    def __init__(self, ret_val):
+        self.ret_val = ret_val
+
+
 class Environment:
     def __init__(self):
         self.outer_env = None

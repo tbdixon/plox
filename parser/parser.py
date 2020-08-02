@@ -103,7 +103,8 @@ class Parser:
             TokenType.LEFT_BRACE: self.block_statement,
             TokenType.IF: self.if_statement,
             TokenType.WHILE: self.while_statement,
-            TokenType.FOR: self.for_statement
+            TokenType.FOR: self.for_statement,
+            TokenType.RETURN: self.return_statement
         }
         token_type = self.current_token().tokentype
         fn = match.get(token_type, None)
@@ -112,6 +113,13 @@ class Parser:
             return fn()
         else:
             return self.expr_statement()
+
+    def return_statement(self) -> Stmt:
+        ret_val = None
+        if not self.check([TokenType.SEMICOLON]):
+            ret_val = self.expression()
+        self.check_consume_next(TokenType.SEMICOLON, "Missing ';' after return")
+        return ReturnStmt(ret_val)
 
     def for_statement(self) -> Stmt:
         self.check_consume_next(TokenType.LEFT_PAREN, "Missing '('")
