@@ -24,11 +24,6 @@ def execute_stmt(stmt: VarStmt, env: Environment) -> None:
 
 
 @multimethod
-def execute_stmt(stmt: AssignStmt, env: Environment) -> None:
-    env.assign(stmt.name, execute_expr(stmt.value, env))
-
-
-@multimethod
 def execute_stmt(stmt: BlockStmt, env: Environment) -> None:
     stmt.env = Environment()
     stmt.env.outer_env = env

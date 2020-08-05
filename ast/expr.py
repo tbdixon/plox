@@ -38,11 +38,13 @@ class Grouping(Expr):
 class Variable(Expr):
     def __init__(self, var: Token):
         self.var = var
+        self.depth = None
 
 
 class Assign(Expr):
-    def __init__(self, name: Token, val):
-        self.name = name
+    def __init__(self, var: Variable, val: Expr):
+        self.name = var.var.lexeme
+        self.var = var
         self.val = val
 
 

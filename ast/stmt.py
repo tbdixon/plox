@@ -26,12 +26,6 @@ class VarStmt(Stmt):
         self.initializer = initializer
 
 
-class AssignStmt(Stmt):
-    def __init__(self, name: Token, value: Expr = None):
-        self.name = name
-        self.value = value
-
-
 class BlockStmt(Stmt):
     def __init__(self, statements: List[Stmt]):
         self.statements = statements

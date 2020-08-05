@@ -5,6 +5,7 @@ from environment.environment import Environment
 from ast.expr import *
 from interpreter.validations import is_numeric, is_string
 
+
 @multimethod
 def execute_expr(literal: Literal, _: Environment = None):
     return literal.value
@@ -67,12 +68,12 @@ def execute_expr(grouping: Grouping, env: Environment):
 
 @multimethod
 def execute_expr(variable: Variable, env: Environment):
-    return env.get(variable.var)
+    return env.get(variable.var, variable.depth)
 
 
 @multimethod
 def execute_expr(assignment: Assign, env: Environment):
-    return env.assign(assignment.name, execute_expr(assignment.val, env))
+    return env.assign(assignment.var.var, execute_expr(assignment.val, env), assignment.var.depth)
 
 
 @multimethod

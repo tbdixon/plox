@@ -29,6 +29,7 @@ class Clock(LoxCallable):
 class Interpreter:
     def __init__(self):
         self.environment = self.globals = Environment()
+
         self.globals.define('clock', Clock())
 
     def interpret(self, statements: List[Stmt]) -> None:

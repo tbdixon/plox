@@ -192,7 +192,7 @@ class Parser:
         if self.advance_if_match([TokenType.EQUAL]):
             r_value = self.assignment()
             if type(val) == Variable:
-                return Assign(val.var, r_value)
+                return Assign(val, r_value)
             else:
                 raise LoxParseError(f'Invalid assignment target {self.previous_token().lexeme}', self.previous_token())
         return val
