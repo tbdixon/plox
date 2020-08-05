@@ -15,17 +15,19 @@ class Environment:
     def define(self, name: str, val):
         self.values[name] = val
 
-    def assign(self, name: Token, val):
-        if name.lexeme in self.values:
-            self.values[name.lexeme] = val
-            return val
-        elif self.outer_env:
-            return self.outer_env.assign(name, val)
-        raise LoxRuntimeError(f'Undefined variable {name.lexeme}')
+    def assign(self, name: Token, val, depth):
+        if depth == 0:
+            if name.lexeme in self.values:
+                self.values[name.lexeme] = val
+                return val
+            raise LoxRuntimeError(f'Undefined variable {name.lexeme}')
+        else:
+            return self.outer_env.assign(name, val, depth - 1)
 
-    def get(self, name: Token):
-        if name.lexeme in self.values:
-            return self.values[name.lexeme]
-        elif self.outer_env:
-            return self.outer_env.get(name)
-        raise LoxRuntimeError(f'Undefined variable {name.lexeme}')
+    def get(self, name: Token, depth: int):
+        if depth == 0:
+            if name.lexeme in self.values:
+                return self.values[name.lexeme]
+            raise LoxRuntimeError(f'Undefined variable {name.lexeme}')
+        else:
+            return self.outer_env.get(name, depth - 1)

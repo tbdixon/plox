@@ -8,6 +8,8 @@ from ast.stmt import Stmt
 
 from ast.lox_callable import LoxCallable
 
+from interpreter.execute_stmt import execute_stmt
+
 
 # native function sample
 class Clock(LoxCallable):
@@ -27,9 +29,9 @@ class Clock(LoxCallable):
 class Interpreter:
     def __init__(self):
         self.environment = self.globals = Environment()
+
         self.globals.define('clock', Clock())
 
     def interpret(self, statements: List[Stmt]) -> None:
-        from interpreter.execute_stmt import execute_stmt
         for statement in statements:
             execute_stmt(statement, self.environment)

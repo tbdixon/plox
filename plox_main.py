@@ -5,6 +5,7 @@ from parser.parser import Parser
 from interpreter.interpreter import Interpreter
 from error_handling.error_printer import parser_error_print
 from error_handling.loxerror import LoxRuntimeError
+from resolution.resolve import resolve_statements
 
 
 def run_prompt() -> None:
@@ -12,7 +13,6 @@ def run_prompt() -> None:
     while True:
         try:
             line = input("> ")
-        # Probably better to use signals for SIGINT, but this is quick and easy for now
         except (EOFError, KeyboardInterrupt) as err:
             if isinstance(err, EOFError):
                 sys.exit(0)
@@ -20,14 +20,10 @@ def run_prompt() -> None:
                 print("\n")
                 continue
         if len(line):
-            # I am tired of missing ; errors in REPL
-            if line[-1] != ";":
-                line += ";"
             run(line, interpreter)
 
 
 def run_file(filename: str) -> None:
-    # Make running debugger simpler
     file_path = os.path.join(os.path.dirname(__file__), filename)
     script = open(file_path, 'r').read()
     print(f'executing {filename}')
@@ -46,6 +42,7 @@ def run(source: str, interpreter: Interpreter) -> None:
         for err in parser.errors:
             parser_error_print(err, scanner.source_lines)
     else:
+        resolve_statements(statements)
         try:
             interpreter.interpret(statements)
         except LoxRuntimeError as err:

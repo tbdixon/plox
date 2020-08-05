@@ -1,5 +1,5 @@
 from abc import ABC
-from typing import List
+from typing import List, Union
 
 from ast.expr import Expr
 from scanner.token import Token
@@ -24,12 +24,6 @@ class VarStmt(Stmt):
     def __init__(self, name: Token, initializer: Expr):
         self.name = name
         self.initializer = initializer
-
-
-class AssignStmt(Stmt):
-    def __init__(self, name: Token, value: Expr = None):
-        self.name = name
-        self.value = value
 
 
 class BlockStmt(Stmt):

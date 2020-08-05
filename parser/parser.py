@@ -1,4 +1,4 @@
-from ast.expr import Literal, Binary, Grouping, Unary, Variable, Assign, Logical, Call
+from ast.expr import Literal, Binary, Grouping, Unary, Variable, Assign, Logical, Call, AnonymousFun
 from ast.stmt import *
 from error_handling.loxerror import LoxParseError
 from scanner.token import Token
@@ -81,8 +81,11 @@ class Parser:
         return VarStmt(var_name, expr)
 
     def fun_declaration(self) -> Stmt:
-        fun_name = self.current_token()
-        self.advance()
+        if self.check([TokenType.LEFT_PAREN]):
+            fun_name = None
+        else:
+            fun_name = self.current_token()
+            self.advance()
         self.check_consume_next(TokenType.LEFT_PAREN, "Expect '(' after fun definition")
         params = list()
         if not self.check([TokenType.RIGHT_PAREN]):
@@ -95,7 +98,7 @@ class Parser:
                     self.error(self.previous_token(), "Cannot have more than 255 parameters")
         self.check_consume_next(TokenType.RIGHT_PAREN, "Missing ')' after parameters")
         self.check_consume_next(TokenType.LEFT_BRACE, "Missing '{' at start of function body")
-        return FunctionStmt(fun_name, params, self.block_statement())
+        return FunctionStmt(fun_name, params, self.block_statement()) if fun_name else AnonymousFun(params, self.block_statement())
 
     def statement(self) -> Stmt:
         match = {
@@ -189,7 +192,7 @@ class Parser:
         if self.advance_if_match([TokenType.EQUAL]):
             r_value = self.assignment()
             if type(val) == Variable:
-                return Assign(val.var, r_value)
+                return Assign(val, r_value)
             else:
                 raise LoxParseError(f'Invalid assignment target {self.previous_token().lexeme}', self.previous_token())
         return val
@@ -264,7 +267,8 @@ class Parser:
             TokenType.STRING: lambda: Literal(self.previous_token().literal),
             TokenType.NUMBER: lambda: Literal(self.previous_token().literal),
             TokenType.IDENTIFIER: lambda: Variable(self.previous_token()),
-            TokenType.LEFT_PAREN: self.grouping_helper
+            TokenType.LEFT_PAREN: self.grouping_helper,
+            TokenType.FUN: self.fun_declaration
         }
         token_type = self.current_token().tokentype
         fn = match.get(token_type, None)

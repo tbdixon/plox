@@ -1,5 +1,8 @@
 from abc import ABC
 from typing import List
+from typing import TYPE_CHECKING
+if TYPE_CHECKING:
+    from ast.stmt import BlockStmt
 
 from scanner.token import Token
 
@@ -35,11 +38,13 @@ class Grouping(Expr):
 class Variable(Expr):
     def __init__(self, var: Token):
         self.var = var
+        self.depth = None
 
 
 class Assign(Expr):
-    def __init__(self, name: Token, val):
-        self.name = name
+    def __init__(self, var: Variable, val: Expr):
+        self.name = var.var.lexeme
+        self.var = var
         self.val = val
 
 
@@ -55,3 +60,9 @@ class Call(Expr):
         self.callee = callee
         self.paren = paren
         self.arguments = arguments
+
+
+class AnonymousFun(Expr):
+    def __init__(self, params: List[Token], body: 'BlockStmt'):
+        self.params = params
+        self.body = body
