@@ -34,6 +34,10 @@ def run(source: str, interpreter: Interpreter) -> None:
     scanner = Scanner(source)
     scanner.scan_tokens()
 
+    if scanner.had_error:
+        print(f'Error scanning')
+        return
+
     parser = Parser(scanner.tokens)
     statements = parser.parse()
 

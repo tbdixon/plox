@@ -62,6 +62,19 @@ class Call(Expr):
         self.arguments = arguments
 
 
+class LoxGet(Expr):
+    def __init__(self, obj: Expr, name: Token):
+        self.obj = obj
+        self.name = name
+
+
+class LoxSet(Expr):
+    def __init__(self, obj: Expr, name: Token, val: Expr):
+        self.obj = obj
+        self.name = name
+        self.val = val
+
+
 class AnonymousFun(Expr):
     def __init__(self, params: List[Token], body: 'BlockStmt'):
         self.params = params

@@ -3,7 +3,7 @@ import abc
 
 class LoxCallable(abc.ABC):
     @abc.abstractmethod
-    def call(self, env, *args):
+    def call(self, *args):
         pass
 
     @abc.abstractmethod

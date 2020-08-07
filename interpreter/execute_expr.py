@@ -108,6 +108,16 @@ def execute_expr(fun: AnonymousFun, env: Environment):
     return LoxFunction(fun, env)
 
 
+@multimethod
+def execute_expr(lox_get: LoxGet, env: Environment):
+    obj = execute_expr(lox_get.obj, env)
+    return obj.get(lox_get.name)
+
+
+@multimethod
+def execute_expr(lox_set: LoxSet, env: Environment):
+    obj = execute_expr(lox_set.obj, env)
+    return obj.set(lox_set.name, lox_set.val)
 
 
 

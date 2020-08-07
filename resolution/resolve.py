@@ -95,6 +95,17 @@ def resolve(fun: AnonymousFun, scopes: deque):
 
 
 @multimethod
+def resolve(expr: LoxGet, scopes: deque):
+    resolve(expr.obj, scopes)
+
+
+@multimethod
+def resolve(expr: LoxSet, scopes: deque):
+    resolve(expr.obj, scopes)
+    resolve(expr.val, scopes)
+
+
+@multimethod
 def resolve(var: VarStmt, scopes: deque):
     declare(var.name, scopes)
     if var.initializer:
@@ -145,6 +156,12 @@ def resolve(stmt: WhileStmt, scopes: deque):
 @multimethod
 def resolve(stmt: ReturnStmt, scopes: deque):
     resolve(stmt.value, scopes)
+
+
+@multimethod
+def resolve(stmt: ClassStmt, scopes: deque):
+    declare(stmt.name, scopes)
+    define(stmt.name, scopes)
 
 
 def resolve_statements(statements: List[Stmt]):

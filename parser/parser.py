@@ -1,4 +1,4 @@
-from ast.expr import Literal, Binary, Grouping, Unary, Variable, Assign, Logical, Call, AnonymousFun
+from ast.expr import Literal, Binary, Grouping, Unary, Variable, Assign, Logical, Call, AnonymousFun, LoxGet, LoxSet
 from ast.stmt import *
 from error_handling.loxerror import LoxParseError
 from scanner.token import Token
@@ -62,8 +62,10 @@ class Parser:
         try:
             if self.advance_if_match([TokenType.VAR]):
                 return self.var_declaration()
-            elif self.advance_if_match([TokenType.FUN]):
+            if self.advance_if_match([TokenType.FUN]):
                 return self.fun_declaration()
+            if self.advance_if_match([TokenType.CLASS]):
+                return self.class_declaration()
             return self.statement()
         except LoxParseError as err:
             self.synchronize()
@@ -79,6 +81,16 @@ class Parser:
             expr = self.expression()
         self.check_consume_next(TokenType.SEMICOLON, "Expect ';' after variable declaration")
         return VarStmt(var_name, expr)
+
+    def class_declaration(self):
+        class_name = self.current_token()
+        self.advance()
+        self.check_consume_next(TokenType.LEFT_BRACE, "Expect '{' after class declaration")
+        methods = []
+        while not self.is_at_end() and not self.check([TokenType.RIGHT_BRACE]):
+            methods.append(self.fun_declaration())
+        self.check_consume_next(TokenType.RIGHT_BRACE, "Expect'{' after class declaration")
+        return ClassStmt(class_name, methods)
 
     def fun_declaration(self) -> Stmt:
         if self.check([TokenType.LEFT_PAREN]):
@@ -193,6 +205,8 @@ class Parser:
             r_value = self.assignment()
             if type(val) == Variable:
                 return Assign(val, r_value)
+            elif type(val) == LoxGet:
+                return LoxSet(val.obj, val.name, r_value)
             else:
                 raise LoxParseError(f'Invalid assignment target {self.previous_token().lexeme}', self.previous_token())
         return val
@@ -243,10 +257,16 @@ class Parser:
         return self.call()
 
     def call(self) -> Expr:
-        callee = self.primary()
-        while self.advance_if_match([TokenType.LEFT_PAREN]):
-            callee = self.build_call_expr(callee)
-        return callee
+        expr = self.primary()
+        while True:
+            if self.advance_if_match([TokenType.LEFT_PAREN]):
+                expr = self.build_call_expr(expr)
+            elif self.advance_if_match([TokenType.DOT]):
+                self.check_consume_next(TokenType.IDENTIFIER, "Expect property after '.'")
+                expr = LoxGet(expr, self.previous_token())
+            else:
+                break
+        return expr
 
     def build_call_expr(self, callee: Expr) -> Call:
         args = []
