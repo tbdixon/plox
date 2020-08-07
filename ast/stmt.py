@@ -52,6 +52,12 @@ class FunctionStmt(Stmt):
         self.body = body
 
 
+class ClassStmt(Stmt):
+    def __init__(self, name: Token, methods: List[FunctionStmt]):
+        self.name = name
+        self.methods = methods
+
+
 class ReturnStmt(Stmt):
     def __init__(self, value: Expr):
         self.value = value

@@ -1,6 +1,7 @@
 from interpreter.execute_expr import execute_expr
 from multimethod.multimethod import multimethod
 from interpreter.loxfunction import LoxFunction
+from interpreter.loxclass import LoxClass
 from environment.environment import LoxReturn
 from ast.stmt import *
 
@@ -55,3 +56,10 @@ def execute_stmt(stmt: ReturnStmt, env: Environment):
     if stmt.value:
         ret_val = execute_expr(stmt.value, env)
     raise LoxReturn(ret_val)
+
+
+@multimethod
+def execute_stmt(stmt: ClassStmt, env: Environment):
+    env.define(stmt.name.lexeme, None)
+    lox_class = LoxClass(stmt.name, stmt.methods)
+    env.assign(stmt.name, lox_class, 0)
