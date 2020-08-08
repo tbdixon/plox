@@ -1,5 +1,6 @@
 from typing import Dict
 
+from environment.environment import Environment
 from scanner.token import Token
 from ast.lox_callable import LoxCallable
 from error_handling.loxerror import LoxRuntimeError
@@ -11,10 +12,13 @@ class LoxClass(LoxCallable):
         self.methods = methods
 
     def call(self, *args):
-        return LoxInstance(self)
+        instance = LoxInstance(self)
+        if "init" in self.methods:
+            instance.init(*args)
+        return instance
 
     def arity(self):
-        return 0
+        return self.methods["init"].arity() if "init" in self.methods else 0
 
     def getMethod(self, name: Token):
         return self.methods[name.lexeme]
@@ -27,6 +31,11 @@ class LoxInstance:
     def __init__(self, lox_class: LoxClass):
         self.lox_class = lox_class
         self.fields = {}
+
+    def init(self, *args):
+        init = self.lox_class.methods["init"]
+        init.bind(self).call(*args)
+        return self
 
     def get(self, name: Token):
         if name.lexeme in self.fields:

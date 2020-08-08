@@ -121,7 +121,7 @@ def execute_expr(lox_get: LoxGet, env: Environment):
 @multimethod
 def execute_expr(lox_set: LoxSet, env: Environment):
     obj = execute_expr(lox_set.obj, env)
-    return obj.set(lox_set.name, lox_set.val)
+    return obj.set(lox_set.name, execute_expr(lox_set.val, env))
 
 
 
