@@ -2,10 +2,12 @@ class TestClass {
 	test_method() {
 		return "my method!!";
 	}
+
+	test_this() {
+		print this.set_var;
+	}
 }
 
-print TestClass;
 var my_class = TestClass();
-my_class.foo = "bar";
-print my_class;
-print my_class.foo;
+my_class.set_var = 10;
+my_class.test_this();

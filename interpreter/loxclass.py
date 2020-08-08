@@ -1,13 +1,12 @@
-from typing import List
+from typing import Dict
 
 from scanner.token import Token
-from ast.stmt import FunctionStmt
 from ast.lox_callable import LoxCallable
 from error_handling.loxerror import LoxRuntimeError
 
 
 class LoxClass(LoxCallable):
-    def __init__(self, name: Token, methods: List[FunctionStmt]):
+    def __init__(self, name: Token, methods: Dict):
         self.name = name
         self.methods = methods
 
@@ -16,6 +15,9 @@ class LoxClass(LoxCallable):
 
     def arity(self):
         return 0
+
+    def getMethod(self, name: Token):
+        return self.methods[name.lexeme]
 
     def __str__(self):
         return self.name.lexeme
@@ -29,6 +31,9 @@ class LoxInstance:
     def get(self, name: Token):
         if name.lexeme in self.fields:
             return self.fields[name.lexeme]
+        elif name.lexeme in self.lox_class.methods:
+            method = self.lox_class.getMethod(name)
+            return method.bind(self)
         raise LoxRuntimeError("Invalid field ", name)
 
     def set(self, name: Token, val):

@@ -85,13 +85,18 @@ def resolve(expr: Logical, scopes: deque):
 
 
 @multimethod
+def resolve(this: This, scopes: deque):
+    this.depth = get_depth("this", scopes)
+
+
+@multimethod
 def resolve(fun: AnonymousFun, scopes: deque):
     start_scope(scopes)
     for param in fun.params:
         declare(param, scopes)
         define(param, scopes)
     resolve(fun.body, scopes)
-    end_scope()
+    end_scope(scopes)
 
 
 @multimethod
@@ -162,6 +167,11 @@ def resolve(stmt: ReturnStmt, scopes: deque):
 def resolve(stmt: ClassStmt, scopes: deque):
     declare(stmt.name, scopes)
     define(stmt.name, scopes)
+    start_scope(scopes)
+    scopes[0]["this"] = True
+    for method in stmt.methods:
+        resolve(method, scopes)
+    end_scope(scopes)
 
 
 def resolve_statements(statements: List[Stmt]):

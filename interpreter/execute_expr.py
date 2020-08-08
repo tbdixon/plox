@@ -72,6 +72,10 @@ def execute_expr(variable: Variable, env: Environment):
 
 
 @multimethod
+def execute_expr(this: This, env: Environment):
+    return env.get(this.this, this.depth)
+
+@multimethod
 def execute_expr(assignment: Assign, env: Environment):
     return env.assign(assignment.var.var, execute_expr(assignment.val, env), assignment.var.depth)
 
