@@ -1,6 +1,6 @@
 from interpreter.execute_expr import execute_expr
 from multimethod.multimethod import multimethod
-from interpreter.loxfunction import LoxFunction
+from interpreter.loxfunction import LoxFunction, FunctionType
 from interpreter.loxclass import LoxClass
 from environment.environment import LoxReturn
 from ast.stmt import *
@@ -48,7 +48,7 @@ def execute_stmt(stmt: WhileStmt, env: Environment) -> None:
 
 @multimethod
 def execute_stmt(stmt: FunctionStmt, env: Environment) -> None:
-    env.define(stmt.name.lexeme, LoxFunction(stmt, env))
+    env.define(stmt.name.lexeme, LoxFunction(stmt, env, FunctionType.FUNCTION))
 
 
 @multimethod
@@ -61,5 +61,6 @@ def execute_stmt(stmt: ReturnStmt, env: Environment):
 @multimethod
 def execute_stmt(stmt: ClassStmt, env: Environment):
     env.define(stmt.name.lexeme, None)
-    lox_class = LoxClass(stmt.name, stmt.methods)
+    methods = {method.name.lexeme: LoxFunction(method, env, FunctionType.METHOD) for method in stmt.methods}
+    lox_class = LoxClass(stmt.name, methods)
     env.assign(stmt.name, lox_class, 0)

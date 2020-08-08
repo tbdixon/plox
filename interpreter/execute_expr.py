@@ -72,6 +72,10 @@ def execute_expr(variable: Variable, env: Environment):
 
 
 @multimethod
+def execute_expr(this: This, env: Environment):
+    return env.get(this.this, this.depth)
+
+@multimethod
 def execute_expr(assignment: Assign, env: Environment):
     return env.assign(assignment.var.var, execute_expr(assignment.val, env), assignment.var.depth)
 
@@ -117,7 +121,7 @@ def execute_expr(lox_get: LoxGet, env: Environment):
 @multimethod
 def execute_expr(lox_set: LoxSet, env: Environment):
     obj = execute_expr(lox_set.obj, env)
-    return obj.set(lox_set.name, lox_set.val)
+    return obj.set(lox_set.name, execute_expr(lox_set.val, env))
 
 
 

@@ -1,4 +1,4 @@
-from ast.expr import Literal, Binary, Grouping, Unary, Variable, Assign, Logical, Call, AnonymousFun, LoxGet, LoxSet
+from ast.expr import Literal, Binary, Grouping, Unary, Variable, Assign, Logical, Call, AnonymousFun, LoxGet, LoxSet, This
 from ast.stmt import *
 from error_handling.loxerror import LoxParseError
 from scanner.token import Token
@@ -13,7 +13,6 @@ class Parser:
         self.had_error = False
         self.errors = []
 
-    # TODO: Better error handling, throw vs report in parsing
     def error(self, token: Token, err: str):
         self.had_error = True
         print(token)
@@ -287,6 +286,7 @@ class Parser:
             TokenType.STRING: lambda: Literal(self.previous_token().literal),
             TokenType.NUMBER: lambda: Literal(self.previous_token().literal),
             TokenType.IDENTIFIER: lambda: Variable(self.previous_token()),
+            TokenType.THIS: lambda: This(self.previous_token()),
             TokenType.LEFT_PAREN: self.grouping_helper,
             TokenType.FUN: self.fun_declaration
         }

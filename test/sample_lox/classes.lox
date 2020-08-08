@@ -1,11 +1,11 @@
-class TestClass {
-	test_method() {
-		return "my method!!";
-	}
+class Foo {
+	  init(a, b) {
+		      print "init"; // expect: init
+			      this.a = a;
+				      this.b = b;
+					    }
 }
 
-print TestClass;
-var my_class = TestClass();
-my_class.foo = "bar";
-print my_class;
-print my_class.foo;
+var foo = Foo(1, 2);
+print foo.a; // expect: 1
+print foo.b; // expect: 2

@@ -41,6 +41,12 @@ class Variable(Expr):
         self.depth = None
 
 
+class This(Expr):
+    def __init__(self, this: Token):
+        self.this = this
+        self.depth = None
+
+
 class Assign(Expr):
     def __init__(self, var: Variable, val: Expr):
         self.name = var.var.lexeme
@@ -79,3 +85,4 @@ class AnonymousFun(Expr):
     def __init__(self, params: List[Token], body: 'BlockStmt'):
         self.params = params
         self.body = body
+
