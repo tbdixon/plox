@@ -8,8 +8,8 @@ class LoxReturn(Exception):
 
 
 class Environment:
-    def __init__(self):
-        self.outer_env = None
+    def __init__(self, outer_env = None):
+        self.outer_env = outer_env
         self.values = dict()
 
     def define(self, name: str, val):
@@ -20,14 +20,14 @@ class Environment:
             if name.lexeme in self.values:
                 self.values[name.lexeme] = val
                 return val
-            raise LoxRuntimeError(f'Undefined variable {name.lexeme}')
+            raise LoxRuntimeError(f'Undefined assignment variable {name.lexeme}')
         else:
             return self.outer_env.assign(name, val, depth - 1)
 
-    def get(self, name: Token, depth: int):
+    def get(self, name: str, depth: int):
         if depth == 0:
-            if name.lexeme in self.values:
-                return self.values[name.lexeme]
-            raise LoxRuntimeError(f'Undefined variable {name.lexeme}')
+            if name in self.values:
+                return self.values[name]
+            raise LoxRuntimeError(f'Undefined get variable {name}')
         else:
             return self.outer_env.get(name, depth - 1)

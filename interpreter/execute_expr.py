@@ -68,12 +68,13 @@ def execute_expr(grouping: Grouping, env: Environment):
 
 @multimethod
 def execute_expr(variable: Variable, env: Environment):
-    return env.get(variable.var, variable.depth)
+    return env.get(variable.var.lexeme, variable.depth)
 
 
 @multimethod
 def execute_expr(this: This, env: Environment):
-    return env.get(this.this, this.depth)
+    return env.get("this", this.depth)
+
 
 @multimethod
 def execute_expr(assignment: Assign, env: Environment):
@@ -122,6 +123,13 @@ def execute_expr(lox_get: LoxGet, env: Environment):
 def execute_expr(lox_set: LoxSet, env: Environment):
     obj = execute_expr(lox_set.obj, env)
     return obj.set(lox_set.name, execute_expr(lox_set.val, env))
+
+
+@multimethod
+def execute_expr(lox_super: Super, env: Environment):
+    superclass = env.get("super", lox_super.depth)
+    this = env.get("this", lox_super.depth - 1)
+    return superclass.getMethod(lox_super.method).bind(this)
 
 
 

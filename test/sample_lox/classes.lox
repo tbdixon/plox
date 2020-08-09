@@ -1,11 +1,19 @@
-class Foo {
-	  init(a, b) {
-		      print "init"; // expect: init
-			      this.a = a;
-				      this.b = b;
-					    }
+class A {
+	  method() {
+		      print "A method";
+			    }
 }
 
-var foo = Foo(1, 2);
-print foo.a; // expect: 1
-print foo.b; // expect: 2
+class B < A {
+	  method() {
+		      print "B method";
+			    }
+
+				  test() {
+					      super.method();
+						    }
+}
+
+class C < B {}
+
+C().test();

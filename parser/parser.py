@@ -1,4 +1,4 @@
-from ast.expr import Literal, Binary, Grouping, Unary, Variable, Assign, Logical, Call, AnonymousFun, LoxGet, LoxSet, This
+from ast.expr import Literal, Binary, Grouping, Unary, Variable, Assign, Logical, Call, AnonymousFun, LoxGet, LoxSet, This, Super
 from ast.stmt import *
 from error_handling.loxerror import LoxParseError
 from scanner.token import Token
@@ -84,12 +84,16 @@ class Parser:
     def class_declaration(self):
         class_name = self.current_token()
         self.advance()
+        superclass = None
+        if self.advance_if_match([TokenType.LESS]):
+            self.check_consume_next(TokenType.IDENTIFIER, "Expect superclass name")
+            superclass = Variable(self.previous_token())
         self.check_consume_next(TokenType.LEFT_BRACE, "Expect '{' after class declaration")
         methods = []
         while not self.is_at_end() and not self.check([TokenType.RIGHT_BRACE]):
             methods.append(self.fun_declaration())
         self.check_consume_next(TokenType.RIGHT_BRACE, "Expect'{' after class declaration")
-        return ClassStmt(class_name, methods)
+        return ClassStmt(class_name, superclass, methods)
 
     def fun_declaration(self) -> Stmt:
         if self.check([TokenType.LEFT_PAREN]):
@@ -288,7 +292,8 @@ class Parser:
             TokenType.IDENTIFIER: lambda: Variable(self.previous_token()),
             TokenType.THIS: lambda: This(self.previous_token()),
             TokenType.LEFT_PAREN: self.grouping_helper,
-            TokenType.FUN: self.fun_declaration
+            TokenType.FUN: self.fun_declaration,
+            TokenType.SUPER: self.super_helper
         }
         token_type = self.current_token().tokentype
         fn = match.get(token_type, None)
@@ -297,6 +302,13 @@ class Parser:
             return fn()
         else:
             raise LoxParseError(f'Invalid token found', self.current_token())
+
+    def super_helper(self):
+        keyword = self.previous_token()
+        self.check_consume_next(TokenType.DOT, "Expect '.' after super")
+        method = self.current_token()
+        self.advance()
+        return Super(keyword, method)
 
     def grouping_helper(self):
         grouping_expr = Grouping(self.expression())

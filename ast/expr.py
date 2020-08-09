@@ -81,6 +81,13 @@ class LoxSet(Expr):
         self.val = val
 
 
+class Super(Expr):
+    def __init__(self, keyword: Token, method: Token):
+        self.keyword = keyword
+        self.method = method
+        self.depth = None
+
+
 class AnonymousFun(Expr):
     def __init__(self, params: List[Token], body: 'BlockStmt'):
         self.params = params

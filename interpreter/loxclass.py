@@ -1,14 +1,14 @@
-from typing import Dict
+from typing import Dict, Union
 
-from environment.environment import Environment
 from scanner.token import Token
 from ast.lox_callable import LoxCallable
 from error_handling.loxerror import LoxRuntimeError
 
 
 class LoxClass(LoxCallable):
-    def __init__(self, name: Token, methods: Dict):
+    def __init__(self, name: Token, superclass: 'LoxClass', methods: Dict):
         self.name = name
+        self.superclass = superclass
         self.methods = methods
 
     def call(self, *args):
@@ -21,7 +21,11 @@ class LoxClass(LoxCallable):
         return self.methods["init"].arity() if "init" in self.methods else 0
 
     def getMethod(self, name: Token):
-        return self.methods[name.lexeme]
+        if name.lexeme in self.methods:
+            return self.methods[name.lexeme]
+        elif self.superclass:
+            return self.superclass.getMethod(name)
+        raise LoxRuntimeError("Invalid field ", name)
 
     def __str__(self):
         return self.name.lexeme
@@ -40,10 +44,9 @@ class LoxInstance:
     def get(self, name: Token):
         if name.lexeme in self.fields:
             return self.fields[name.lexeme]
-        elif name.lexeme in self.lox_class.methods:
+        else:
             method = self.lox_class.getMethod(name)
             return method.bind(self)
-        raise LoxRuntimeError("Invalid field ", name)
 
     def set(self, name: Token, val):
         self.fields[name.lexeme] = val
