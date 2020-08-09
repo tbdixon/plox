@@ -1,7 +1,7 @@
 from abc import ABC
 from typing import List, Union
 
-from ast.expr import Expr
+from ast.expr import Expr, Variable
 from scanner.token import Token
 from environment.environment import Environment
 
@@ -53,8 +53,9 @@ class FunctionStmt(Stmt):
 
 
 class ClassStmt(Stmt):
-    def __init__(self, name: Token, methods: List[FunctionStmt]):
+    def __init__(self, name: Token, superclass: Variable, methods: List[FunctionStmt]):
         self.name = name
+        self.superclass = superclass
         self.methods = methods
 
 

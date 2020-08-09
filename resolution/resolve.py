@@ -46,6 +46,11 @@ def resolve(assignment: Assign, scopes: deque):
 
 
 @multimethod
+def resolve(lox_super: Super, scopes: deque):
+    lox_super.depth = get_depth("super", scopes)
+
+
+@multimethod
 def resolve(call: Call, scopes: deque):
     resolve(call.callee, scopes)
     for arg in call.arguments:
@@ -167,11 +172,20 @@ def resolve(stmt: ReturnStmt, scopes: deque):
 def resolve(stmt: ClassStmt, scopes: deque):
     declare(stmt.name, scopes)
     define(stmt.name, scopes)
+
+    if stmt.superclass:
+        resolve(stmt.superclass, scopes)
+        start_scope(scopes)
+        scopes[0]["super"] = True
+
     start_scope(scopes)
     scopes[0]["this"] = True
     for method in stmt.methods:
         resolve(method, scopes)
     end_scope(scopes)
+
+    if stmt.superclass:
+        end_scope(scopes)
 
 
 def resolve_statements(statements: List[Stmt]):

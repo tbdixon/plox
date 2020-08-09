@@ -61,6 +61,13 @@ def execute_stmt(stmt: ReturnStmt, env: Environment):
 @multimethod
 def execute_stmt(stmt: ClassStmt, env: Environment):
     env.define(stmt.name.lexeme, None)
+    superclass = None
+    if stmt.superclass:
+        superclass = execute_expr(stmt.superclass, env)
+        env = Environment(env)
+        env.define("super", superclass)
     methods = {method.name.lexeme: LoxFunction(method, env, FunctionType.METHOD) for method in stmt.methods}
-    lox_class = LoxClass(stmt.name, methods)
+    lox_class = LoxClass(stmt.name, superclass, methods)
+    if stmt.superclass:
+        env = env.outer_env
     env.assign(stmt.name, lox_class, 0)
